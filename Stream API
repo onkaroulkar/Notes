@@ -1,0 +1,193 @@
+introduced in Java 8 as part of the java.util.stream package. 
+🧠 What Is a Stream?
+A Stream is a sequence of elements that supports sequential and parallel operations. It does not store elements itself (unlike a collection); instead, it carries values from a source (like a list or set) through 
+a pipeline of operations.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔁 Stream Pipeline Structure
+
+A stream pipeline consists of:
+Source: Where data comes from (e.g., a List, Set, array).
+Intermediate Operations: Transform the stream (e.g., filter, map).
+Terminal Operation: Produces a result or side effect (e.g., collect, forEach).
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Characteristics of Streams
+
+Not a data structure (doesn’t store elements).
+Laziness-seeking: Intermediate operations are lazy and only executed when a terminal operation is present.
+Once-only: A stream can be consumed once.
+Can be sequential or parallel.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧱 Types of Operations
+🔹 Intermediate Operations (Lazy)
+These return a new stream. They are not executed until a terminal operation is invoked.
+
+Method	                          Description
+filter() 	                        Filters elements by a predicate.
+map()	                            Transforms elements using a function.
+flatMap()	                        Flattens nested structures.
+distinct()	                      Removes duplicates.
+sorted()	                        Sorts elements.
+peek()	                          Performs a side effect (mainly for debugging).
+limit()	                          Limits the number of elements.
+skip()	                          Skips the first N elements.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 Terminal Operations (Trigger Processing)
+Method	                         Description
+collect()	                       Reduces elements into a collection.
+forEach()	                       Performs an action for each element.
+reduce()	                       Reduces elements to a single value.
+count()	                         Counts elements.
+anyMatch()	                     Checks if any element matches a predicate.
+allMatch()	                     Checks if all elements match a predicate.
+noneMatch()	                     Checks if no element matches a predicate.
+findFirst()	                     Returns the first element (optional).
+findAny()	                       Returns any element (optional).
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🛠️ Common Use Cases
+📌 Filtering and Mapping
+List<String> names = Arrays.asList("Onkar", "Nirmal","shubham","Ram");
+
+        List<String> name = names.stream()
+                .filter(s ->s.length()>3)
+                .map(String::toUpperCase)
+                .toList();
+        System.out.println(name);
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📌 Collecting Results
+
+List<String> items = List.of("apple", "banana", "apple");
+Set<String> unique = items.stream().collect(Collectors.toSet());
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📌 Grouping and Counting
+Map<Integer, List<String>> groupedByLength = items.stream()
+    .collect(Collectors.groupingBy(String::length));
+
+Map<String, Long> countByItem = items.stream()
+    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🌀 Advanced: flatMap()
+Used when each element maps to multiple values.
+
+List<List<String>> nested = List.of(
+    List.of("a", "b"),
+    List.of("c", "d"));
+
+List<String> flat = nested.stream()
+                          .flatMap(List::stream)
+                          .collect(Collectors.toList());
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚙️ Parallel Streams
+Parallel processing for performance (when appropriate):
+list.parallelStream().filter(...).collect(...);
+
+⚠️ Use with caution: Overhead and thread safety can affect performance.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📌 Stream vs. Collection
+
+| Aspect      | Stream                       | Collection           |
+| ----------- | ---------------------------- | -------------------- |
+| Storage     | No                           | Yes                  |
+| Iteration   | Internal (via pipeline)      | External (via loops) |
+| Reusability | One-time use                 | Reusable             |
+| Lazy Eval   | Yes                          | No                   |
+| Parallelism | Easy with `parallelStream()` | Manual effort needed |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧼 Best Practices
+
+Keep streams short and readable.
+Avoid stateful operations inside the stream (e.g., modifying external variables).
+Don’t mix side effects with business logic.
+Prefer method references (String::toUpperCase) over lambdas where possible.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔶 1. Collectors API (in java.util.stream.Collectors)
+A collector is used in a terminal operation (collect()) to gather elements into a container like List, Set, Map, etc.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧰 Common Built-in Collectors
+List<String> names = stream.collect(Collectors.toList());
+Set<String> unique = stream.collect(Collectors.toSet());
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+➤ joining() – For String Concatenation
+String result = List.of("A", "B", "C")
+    .stream()
+    .collect(Collectors.joining(", "));
+// Output: "A, B, C"
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+➤ groupingBy() – Group elements by a classifier function
+Map<Integer, List<String>> groupedByLength = List.of("apple", "banana", "dog")
+    .stream()
+    .collect(Collectors.groupingBy(String::length));
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+➤ partitioningBy() – Partition into two groups based on a predicate
+Map<Boolean, List<Integer>> partitioned = List.of(1, 2, 3, 4, 5)
+    .stream()
+    .collect(Collectors.partitioningBy(i -> i % 2 == 0));
+// true -> [2, 4], false -> [1, 3, 5]
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+➤ mapping() – Use inside another collector
+Map<Integer, List<String>> groupedUppercase =
+    List.of("cat", "dog", "car")
+    .stream()
+    .collect(Collectors.groupingBy(
+        String::length,
+        Collectors.mapping(String::toUpperCase, Collectors.toList())
+    ));
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔶 2. reduce() Deep Dive
+reduce() is a fold operation – it reduces a stream into a single result.
+
+🔹 Example 1: Sum of Integers
+int sum = List.of(1, 2, 3, 4)
+    .stream()
+    .reduce(0, Integer::sum); // Output: 10
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Example 2: Finding the Longest String
+Optional<String> longest = List.of("car", "elephant", "fox")
+    .stream()
+    .reduce((s1, s2) -> s1.length() > s2.length() ? s1 : s2);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔶 3. Parallel Streams – When to Use Them
+List<String> data = ...;
+data.parallelStream().map(...).collect(...);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Pros:
+Speeds up processing on large datasets using multiple CPU cores
+Easy to switch: stream() → parallelStream()
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+❌ Cons:
+Overhead of thread management for small collections
+Operations must be stateless, associative, and non-interfering
+Thread-safety of operations is your responsibility
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚠️ Good Use Cases:
+Pure functional computations
+Heavy CPU tasks
+Large, read-only collections
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔶 4. Common Pitfalls & Debugging
+⚠️ Pitfall 1: Using Streams Multiple Times
+Stream<String> stream = Stream.of("a", "b");
+stream.forEach(System.out::println);
+stream.count(); // Throws IllegalStateException (stream already consumed)
+
+✅ Fix:List<String> list = List.of("a", "b");
+Stream<String> stream1 = list.stream();
+Stream<String> stream2 = list.stream();
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚠️ Pitfall 2: Modifying External State
+List<String> names = List.of("a", "b", "c");
+List<String> output = new ArrayList<>();
+names.stream().forEach(output::add); // Not recommended
+
+✅ Instead, use collect():
+List<String> output = names.stream().collect(Collectors.toList());
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🐛 Debugging with peek()
+peek() is an intermediate operation useful for logging:
+List<String> result = List.of("apple", "banana", "carrot")
+    .stream()
+    .peek(s -> System.out.println("Filtered: " + s))
+    .filter(s -> s.startsWith("a"))
+    .peek(s -> System.out.println("Mapped: " + s.toUpperCase()))
+    .map(String::toUpperCase)
+    .collect(Collectors.toList());
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
