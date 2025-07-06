@@ -1,0 +1,121 @@
+🚨 What is Exception Handling in Java?
+Exception Handling is a powerful mechanism to handle runtime errors, so the normal flow of the program can be maintained without crashing.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧱 Java Exception Hierarchy
+                 Throwable
+                    |
+        --------------------------
+        |                        |
+    Exception                Error (Don't catch)
+        |
+   ------------------
+   |                |
+Checked        Unchecked (RuntimeException)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Checked Exceptions: Must be declared in method signature using throws or handled in a try-catch block.
+⤷ e.g., IOException, SQLException
+
+✅ Unchecked Exceptions: Subclass of RuntimeException. Not enforced by the compiler.
+⤷ e.g., NullPointerException, ArrayIndexOutOfBoundsException, IllegalArgumentException
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔧 Syntax of Exception Handling
+try {
+    // Code that might throw an exception
+} catch (ExceptionType e) {
+    // Code to handle the exception
+} finally {
+    // Code that always executes
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 🧪 Example: Divide by Zero
+public class Example {
+    public static void main(String[] args) {
+        try {
+            int result = 10 / 0;
+        } catch (ArithmeticException e) {
+            System.out.println("Cannot divide by zero.");
+        } finally {
+            System.out.println("This always runs.");
+        }
+    }
+}
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔄 Multiple Catch Blocks
+
+try {
+    String text = null;
+    System.out.println(text.length());
+} catch (ArithmeticException e) {
+    System.out.println("Math error!");
+} catch (NullPointerException e) {
+    System.out.println("Null pointer!");
+}
+
+🔸 Always catch more specific exceptions first.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚠️ Common Exception Types
+| Exception Type                   | Checked/Unchecked | Description                |
+| -------------------------------- | ----------------- | -------------------------- |
+| `IOException`                    | Checked           | I/O failure                |
+| `SQLException`                   | Checked           | Database access error      |
+| `FileNotFoundException`          | Checked           | File not found             |
+| `NullPointerException`           | Unchecked         | Accessing null reference   |
+| `ArrayIndexOutOfBoundsException` | Unchecked         | Invalid array index        |
+| `ClassNotFoundException`         | Checked           | Class not found at runtime |
+| `IllegalArgumentException`       | Unchecked         | Invalid method argument    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+💡 finally Block
+Used for clean-up code like closing files, DB connections.
+try {
+    FileReader file = new FileReader("test.txt");
+    // use file
+} catch (IOException e) {
+    System.out.println("File error!");
+} finally {
+    System.out.println("Closing file...");
+}
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+💥 Throwing Exceptions Manually
+public void setAge(int age) {
+    if (age < 0) {
+        throw new IllegalArgumentException("Age cannot be negative");
+    }
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📤 Declaring Exceptions with throws
+public void readFile(String path) throws IOException {
+    FileReader reader = new FileReader(path);
+}
+
+Used when a method might throw a checked exception, and you want to propagate it up.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🛠️ Creating Custom Exceptions
+public class MyCustomException extends Exception {
+    public MyCustomException(String message) {
+        super(message);
+    }
+}
+
+Usage:
+if (value < 0) {
+    throw new MyCustomException("Negative value not allowed");
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 Best Practices
+| ✅ Do This                                     | ❌ Avoid This                    |
+| --------------------------------------------- | ------------------------------- |
+| Catch only specific exceptions                | Catching `Exception` blindly    |
+| Use finally or try-with-resources             | Ignoring resource leaks         |
+| Create meaningful custom exceptions           | Throwing raw `RuntimeException` |
+| Include messages for debugging                | Empty catch blocks              |
+| Use checked exceptions for recoverable errors | Using unchecked for everything  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔁 Exception Chaining
+Wrap one exception inside another:
+try {
+    something();
+} catch (IOException e) {
+    throw new RuntimeException("Failed to process file", e);
+}
+Helps preserve the root cause in logs.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
