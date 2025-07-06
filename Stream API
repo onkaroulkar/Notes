@@ -191,3 +191,20 @@ List<String> result = List.of("apple", "banana", "carrot")
     .map(String::toUpperCase)
     .collect(Collectors.toList());
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔍 Real-World Use Cases with Streams
+📁 1. Reading a File with Java Streams
+
+Use Files.lines() to read a file line-by-line as a stream.
+try (Stream<String> lines = Files.lines(Paths.get("data.txt"))) {
+    List<String> filtered = lines
+        .filter(line -> !line.trim().isEmpty())
+        .map(String::toUpperCase)
+        .collect(Collectors.toList());
+}
+
+
+➕ Optional Enhancements
+long errorCount = Files.lines(Paths.get("logs.txt"))
+    .filter(line -> line.contains("ERROR"))
+    .count();
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
