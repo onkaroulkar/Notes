@@ -1,0 +1,105 @@
+✅ 1. What is the difference between Checked and Unchecked Exceptions?
+
+| Checked Exception                                        | Unchecked Exception                           |
+| -------------------------------------------------------- | --------------------------------------------- |
+| Inherit from `Exception` (excluding `RuntimeException`)  | Inherit from `RuntimeException`               |
+| Must be declared with `throws` or handled in `try-catch` | Not required to be declared or handled        |
+| Compiler enforces handling                               | Compiler does **not** enforce                 |
+| Examples: `IOException`, `SQLException`                  | `NullPointerException`, `ArithmeticException` |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 2. What is the purpose of the finally block?
+Answer:
+The finally block is used to execute cleanup code (like closing files, releasing DB connections), and it always runs whether or not an exception is thrown or caught.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 3. What is the difference between throw and throws?
+Answer:
+| `throw`                                   | `throws`                                          |
+| ----------------------------------------- | ------------------------------------------------- |
+| Used to **explicitly throw** an exception | Declares that a method may throw an exception     |
+| Syntax: `throw new Exception()`           | Syntax: `public void method() throws IOException` |
+| Inside a method body                      | In method signature                               |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 4. Can you catch multiple exceptions in a single catch block?
+Answer:
+Yes. Since Java 7, you can use multi-catch:
+try {
+    // code
+} catch (IOException | SQLException e) {
+    // common handling
+}
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 5. What is exception chaining?
+Answer:
+Exception chaining is wrapping one exception inside another to preserve the original cause.
+throw new RuntimeException("Failed to read file", causeException);
+Useful for debugging and layered architecture (e.g., service wrapping DAO exceptions).
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 7. What happens if an exception is thrown in the finally block?
+Answer:
+If an exception is thrown in the finally block, it overrides any exception thrown in the try or catch. This can cause original exceptions to be lost, so avoid throwing from finally.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 8. What is the use of try-with-resources in Java?
+Answer:
+Introduced in Java 7, try-with-resources ensures that any object implementing AutoCloseable (like BufferedReader, FileInputStream) is automatically closed, reducing boilerplate and preventing resource leaks.
+try (BufferedReader br = new BufferedReader(new FileReader("file.txt"))) {
+    // use br
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 9. Is it good practice to catch Exception or Throwable?
+Answer:
+
+No, catching Exception or Throwable is discouraged because:
+It hides programming errors (e.g., NullPointerException)
+It can swallow OutOfMemoryError or StackOverflowError
+It makes debugging and error recovery harder
+Catch only specific exceptions you can handle meaningfully.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 10. Can a finally block prevent the program from terminating?
+Answer:
+
+Yes, if it contains:
+An infinite loop
+A System.exit() call
+Or an uncaught exception
+This will stop normal flow and may prevent termination or override other exceptions.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 11. What if an exception is not caught?
+Answer:
+If an exception is unhandled:
+The JVM prints a stack trace
+The program terminates abnormally
+If it’s a checked exception, the compiler won’t allow the program to compile (unless declared)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 12. What is the base class for all exceptions in Java?
+Answer:
+java.lang.Throwable is the superclass of all errors and exceptions. It has two direct subclasses:
+Exception → for application-level errors
+Error → for serious system errors (like OutOfMemoryError)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 13. Why should we not use empty catch blocks?
+Answer:
+Empty catch blocks:
+Silently suppress errors
+Make bugs harder to detect
+Ignore recovery or logging
+👉 Always log or handle exceptions properly, even if you don’t rethrow them.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 14. Can a try block exist without catch or finally?
+Answer:
+No. A try block must be followed by either:
+At least one catch
+A finally
+Or both
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 15. Can you rethrow an exception?
+Answer:
+Yes. You can catch an exception, log it or add context, and rethrow it:
+try {
+    doSomething();
+} catch (IOException e) {
+    throw new RuntimeException("Failed to process file", e);
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
