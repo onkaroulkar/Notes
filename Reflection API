@@ -1,0 +1,269 @@
+🔍 What is Java Reflection?
+
+Java Reflection API is part of the java.lang.reflect package. It allows runtime inspection and manipulation of classes, interfaces, fields, and methods. You can even create objects, call methods, or change field values dynamically — without knowing their names at compile time.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Why Use Reflection?
+
+Some typical use cases:
+Frameworks and Libraries: Spring, Hibernate, JUnit, etc.
+Dependency Injection
+Serialization and Deserialization
+Testing Private Methods/Fields
+Generic Tools like IDEs, debuggers, or GUI builders
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📦 Core Classes in Reflection
+| Class            | Description                                      |
+| ---------------- | ------------------------------------------------ |
+| `Class<T>`       | Represents a class or interface in Java          |
+| `Method`         | Represents a method of a class                   |
+| `Field`          | Represents a field (member variable)             |
+| `Constructor<T>` | Represents a constructor                         |
+| `Modifier`       | Used to decode class and member access modifiers |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🏗️ Basic Concepts with Examples
+1. Getting the Class Object
+You can obtain a Class object in 3 ways:
+
+Class<?> clazz1 = Class.forName("java.util.ArrayList"); // 1. Using Class.forName()
+Class<?> clazz2 = ArrayList.class;                     // 2. Using .class literal
+ArrayList<String> list = new ArrayList<>();
+Class<?> clazz3 = list.getClass();                     // 3. Using getClass() method
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Inspecting Class Information
+System.out.println("Class Name: " + clazz1.getName());
+System.out.println("Superclass: " + clazz1.getSuperclass());
+System.out.println("Interfaces: " + Arrays.toString(clazz1.getInterfaces()));
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Getting Constructors
+Constructor<?>[] constructors = clazz1.getConstructors();
+for (Constructor<?> constructor : constructors) {
+    System.out.println("Constructor: " + constructor.getName());
+}
+
+You can also get a specific constructor:
+Constructor<ArrayList> cons = ArrayList.class.getConstructor(Collection.class);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4. Instantiating Objects
+Constructor<ArrayList> cons = ArrayList.class.getConstructor();
+ArrayList listInstance = cons.newInstance(); // Creates a new ArrayList object
+
+Or simpler:
+ArrayList listInstance = (ArrayList) clazz1.getDeclaredConstructor().newInstance();
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5. Getting Fields
+Field[] fields = clazz1.getDeclaredFields();
+for (Field field : fields) {
+    System.out.println("Field: " + field.getName());
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+To access a private field:
+
+Field field = clazz.getDeclaredField("somePrivateField");
+field.setAccessible(true); // Bypass Java access checks
+Object value = field.get(someObject);
+field.set(someObject, newValue);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6. Getting and Invoking Methods
+Method[] methods = clazz1.getMethods(); // Only public methods, including inherited
+for (Method method : methods) {
+    System.out.println("Method: " + method.getName());
+}
+
+To call a method:
+Method addMethod = clazz1.getMethod("add", Object.class);
+addMethod.invoke(listInstance, "Reflection!");
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+7. Accessing Modifiers
+int modifiers = clazz1.getModifiers();
+System.out.println(Modifier.toString(modifiers)); // e.g., public, abstract
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔐 Access Private Members
+Field privateField = clazz.getDeclaredField("secret");
+privateField.setAccessible(true);
+Object value = privateField.get(obj);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🚨 Reflection Risks and Limitations
+
+Performance Overhead – Slower than direct access.
+Security Risks – Can access private members.
+Compile-Time Safety Lost – You lose type safety.
+Maintenance Complexity – Harder to debug and refactor.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📌 Advanced Topics
+🔁 Working with Annotations
+@Deprecated
+public class MyClass {}
+
+Class<?> clazz = MyClass.class;
+Annotation[] annotations = clazz.getAnnotations();
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📂 Dynamically Loading Classes (Plugin Systems)
+Class<?> pluginClass = Class.forName("com.example.MyPlugin");
+Object plugin = pluginClass.getDeclaredConstructor().newInstance();
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧪 Example: Inspect Any Object
+public class ReflectInspector {
+    public static void inspect(Object obj) throws Exception {
+        Class<?> clazz = obj.getClass();
+        System.out.println("Class: " + clazz.getName());
+
+        for (Field field : clazz.getDeclaredFields()) {
+            field.setAccessible(true);
+            System.out.println(field.getName() + " = " + field.get(obj));
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📚 Summary
+| Concept        | Example                                                |
+| -------------- | ------------------------------------------------------ |
+| Get `Class`    | `Class<?> c = obj.getClass();`                         |
+| Get field      | `Field f = c.getDeclaredField("name");`                |
+| Get method     | `Method m = c.getMethod("doSomething", String.class);` |
+| Instantiate    | `c.getDeclaredConstructor().newInstance();`            |
+| Call method    | `m.invoke(obj, "arg");`                                |
+| Access private | `field.setAccessible(true);`                           |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🛠️ Hands-On Reflection Exercises
+✅ Exercise 1: Inspect Fields and Methods of a Class
+🔹 Goal:
+Write a method that prints all fields and methods (including private) of a given object.
+import java.lang.reflect.*;
+
+public class ReflectExplorer {
+    public static void inspectObject(Object obj) throws Exception {
+        Class<?> clazz = obj.getClass();
+
+        System.out.println("Class: " + clazz.getName());
+
+        System.out.println("\n--- Fields ---");
+        for (Field field : clazz.getDeclaredFields()) {
+            field.setAccessible(true); // Even private
+            System.out.println(field.getName() + " = " + field.get(obj));
+        }
+
+        System.out.println("\n--- Methods ---");
+        for (Method method : clazz.getDeclaredMethods()) {
+            System.out.println(method.getName() + " with return type " + method.getReturnType());
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        class Person {
+            private String name = "Alice";
+            private int age = 30;
+
+            public void sayHello() {
+                System.out.println("Hello!");
+            }
+        }
+
+        inspectObject(new Person());
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Exercise 2: Dynamically Call a Method
+🔹 Goal:
+Call a method using Reflection without knowing its name at compile time.
+import java.lang.reflect.*;
+
+class Hello {
+    public void greet(String name) {
+        System.out.println("Hello, " + name);
+    }
+}
+
+public class MethodInvoker {
+    public static void main(String[] args) throws Exception {
+        Class<?> clazz = Hello.class;
+        Object helloInstance = clazz.getDeclaredConstructor().newInstance();
+
+        Method method = clazz.getMethod("greet", String.class);
+        method.invoke(helloInstance, "Bob");
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Exercise 3: Access and Modify Private Field
+
+import java.lang.reflect.*;
+
+class SecretBox {
+    private String secret = "Top Secret!";
+}
+
+public class SecretBreaker {
+    public static void main(String[] args) throws Exception {
+        SecretBox box = new SecretBox();
+
+        Field field = SecretBox.class.getDeclaredField("secret");
+        field.setAccessible(true);
+        System.out.println("Original: " + field.get(box));
+
+        field.set(box, "Hacked Secret");
+        System.out.println("Modified: " + field.get(box));
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+💼 Real-World Example: How Spring Uses Reflection
+
+🧩 1. Dependency Injection (DI)
+Spring scans your class, finds fields or constructors with @Autowired, and injects dependencies.
+
+Example:
+@Component
+public class UserService {
+    @Autowired
+    private UserRepository userRepository;
+}
+
+How it works under the hood:
+It scans for classes with @Component.
+
+Finds the field userRepository.
+
+Uses Field.setAccessible(true) to allow injecting.
+
+Calls field.set(userServiceInstance, userRepositoryInstance);
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧩 2. Bean Creation from Config
+@Configuration
+public class AppConfig {
+    @Bean
+    public UserService userService() {
+        return new UserService();
+    }
+}
+
+Behind the scenes:
+
+Spring calls AppConfig.class.getDeclaredMethods()
+
+Identifies methods with @Bean
+
+Calls method.invoke(appConfigInstance) to create the object.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧩 3. AOP (Aspect-Oriented Programming)
+Spring can wrap methods dynamically and insert logic (e.g., logging, transactions).
+
+It uses:
+
+Proxy.newProxyInstance() (dynamic proxies)
+InvocationHandler to intercept method calls
+Method.invoke() to call the original method
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+💬 Summary
+Reflection enables Spring to:
+
+Create beans from classes/methods
+
+Inject dependencies into private fields
+
+Call methods dynamically
+
+Wrap objects with proxies (e.g., AOP)
+
+This makes Spring extremely flexible — without needing code generation or boilerplate.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
