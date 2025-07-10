@@ -1,0 +1,117 @@
+🔹 1. What Is a Map in Java?
+A Map is an object that maps keys to values. It cannot contain duplicate keys; each key can map to at most one value.
+
+Part of: java.util package
+Interface: Map<K, V> (Generic – where K is the type of key, and V is the type of value)
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 2. Common Map Implementations
+
+| Class               | Ordered?             | Sorted? | Thread-Safe? | Allows null?                         |
+| ------------------- | -------------------- | ------- | ------------ | ------------------------------------ |
+| `HashMap`           | No                   | No      | No           | Yes (1 null key, many null values)   |
+| `LinkedHashMap`     | Yes (insertion)      | No      | No           | Yes                                  |
+| `TreeMap`           | Yes (sorted by keys) | Yes     | No           | No (null keys not allowed)           |
+| `Hashtable`         | No                   | No      | Yes          | No                                   |
+| `ConcurrentHashMap` | No                   | No      | Yes          | No (null keys or values not allowed) |
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🔹 3. Creating a Map
+
+import java.util.*;
+
+Map<String, Integer> map = new HashMap<>();
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 4. Basic Operations
+
+// Put key-value pairs
+map.put("apple", 10);
+map.put("banana", 20);
+
+// Get a value
+int val = map.get("apple");  // returns 10
+
+// Check if a key exists
+map.containsKey("banana");  // true
+
+// Check if a value exists
+map.containsValue(20);  // true
+
+// Remove a key
+map.remove("banana");
+
+// Get map size
+map.size();
+
+// Is the map empty?
+map.isEmpty();
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 5. Iteration Techniques
+
+// Using for-each with entrySet
+for (Map.Entry<String, Integer> entry : map.entrySet()) {
+    System.out.println(entry.getKey() + " -> " + entry.getValue());
+}
+
+// Using keySet
+for (String key : map.keySet()) {
+    System.out.println("Key: " + key);
+}
+
+// Using values
+for (Integer value : map.values()) {
+    System.out.println("Value: " + value);
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🔹 6. Important Map Methods
+
+| Method                        | Description                                      |
+| ----------------------------- | ------------------------------------------------ |
+| `put(K key, V value)`         | Inserts a key-value pair                         |
+| `get(Object key)`             | Gets the value associated with the key           |
+| `remove(Object key)`          | Removes the mapping                              |
+| `putIfAbsent(K key, V value)` | Puts only if key is absent                       |
+| `replace(K key, V value)`     | Replaces the value                               |
+| `keySet()`                    | Returns a `Set` of all keys                      |
+| `values()`                    | Returns a `Collection` of all values             |
+| `entrySet()`                  | Returns a `Set` of all key-value pairs (entries) |
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 7. HashMap vs TreeMap vs LinkedHashMap
+
+| Feature           | HashMap     | TreeMap           | LinkedHashMap                |
+| ----------------- | ----------- | ----------------- | ---------------------------- |
+| Ordering          | No          | Sorted by key     | Insertion order              |
+| Performance       | Fast (O(1)) | Slower (O(log n)) | Slightly slower than HashMap |
+| Null keys allowed | Yes         | No                | Yes                          |
+| Use Case          | General use | Need sorted keys  | Predictable iteration order  |
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🔹 9. Map with Streams (Java 8+)
+
+// Print all key-value pairs using streams
+map.entrySet().stream()
+   .forEach(e -> System.out.println(e.getKey() + ":" + e.getValue()));
+
+// Filter and collect
+Map<String, Integer> filtered = map.entrySet().stream()
+   .filter(e -> e.getValue() > 10)
+   .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 10. ConcurrentHashMap
+Safe for multithreading. Avoids ConcurrentModificationException.
+
+Map<String, Integer> cmap = new ConcurrentHashMap<>();
+cmap.put("apple", 10);
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🔹 11. Immutable Maps (Java 9+)
+Map<String, String> immutableMap = Map.of("A", "Apple", "B", "Banana");
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
