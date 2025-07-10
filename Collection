@@ -1,0 +1,187 @@
+🔷 1. What is the Java Collection Framework?
+The Java Collection Framework is a set of interfaces and classes that implement commonly reusable data structures and algorithms.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Features:
+Unified architecture: One interface for many types of collections.
+
+Polymorphic algorithms: Sorting, searching, shuffling, etc.
+
+Thread-safe options: With synchronized wrappers or concurrent collections.
+
+Scalability: Suitable for small and large data sets.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 2. Hierarchy of Java Collections
+
+              java.util.Collection (Interface)
+                     /         |         \
+                 List        Set        Queue
+                  |           |           |
+              ArrayList    HashSet     LinkedList
+              LinkedList   TreeSet     PriorityQueue
+              Vector       LinkedHashSet
+              
+          java.util.Map (Interface)
+                |
+            HashMap
+            TreeMap
+            LinkedHashMap
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔶 3. Interfaces in the Java Collections Framework
+
+Collection Interface (root interface)
+Superinterface of most collections (except Map)
+Contains methods like add(), remove(), size(), clear()
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3.2. List Interface
+
+Ordered collection (elements are indexed)
+Allows duplicates
+Common implementations:
+
+ArrayList: Resizable array, fast random access
+LinkedList: Doubly linked list, better for frequent inserts/deletes
+Vector: Synchronized, legacy class
+
+Example:
+List<String> names = new ArrayList<>();
+names.add("Alice");
+names.add("Bob");
+names.add("Alice"); // duplicates allowed
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Set Interface
+
+No duplicate elements allowed
+Unordered (except LinkedHashSet)
+
+Implementations:
+
+HashSet: No order, fastest
+LinkedHashSet: Maintains insertion order
+TreeSet: Sorted, based on Red-Black tree
+
+Example:
+Set<Integer> set = new HashSet<>();
+set.add(10);
+set.add(20);
+set.add(10); // duplicate, will be ignored
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Queue Interface
+
+Elements processed in FIFO (First-In-First-Out) order
+
+Common implementations:
+LinkedList (can act as both List and Queue)
+PriorityQueue (elements are ordered by priority)
+
+Example:
+Queue<String> queue = new LinkedList<>();
+queue.add("Task1");
+queue.add("Task2");
+System.out.println(queue.poll()); // prints "Task1"
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Map Interface
+
+Stores key-value pairs
+Each key maps to exactly one value
+Not part of Collection interface
+
+Implementations:
+HashMap: No order
+LinkedHashMap: Maintains insertion order
+TreeMap: Sorted by keys
+
+Example:
+Map<Integer, String> map = new HashMap<>();
+map.put(1, "Java");
+map.put(2, "Python");
+System.out.println(map.get(1)); // "Java"
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 4. Important Classes in Collections
+
+| Class         | Description          |
+| ------------- | -------------------- |
+| ArrayList     | Resizable array      |
+| LinkedList    | Doubly-linked list   |
+| HashSet       | Unordered set        |
+| TreeSet       | Sorted set           |
+| HashMap       | Unordered map        |
+| TreeMap       | Sorted map           |
+| PriorityQueue | Priority-based queue |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 5. Utility Classes
+
+🔹 Collections (java.util.Collections)
+Contains static methods for collection operations
+Examples: sort(), reverse(), shuffle(), min(), max(), synchronizedList()
+
+List<Integer> nums = Arrays.asList(3, 1, 2);
+Collections.sort(nums); // [1, 2, 3]
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Arrays (java.util.Arrays)
+
+Utility methods for arrays
+Methods: sort(), asList(), binarySearch()
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 7. Iteration Techniques
+
+for (String name : list) {
+    System.out.println(name);
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Iterator:
+
+Iterator<String> it = list.iterator();
+while (it.hasNext()) {
+    System.out.println(it.next());
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🔷 8. Thread-safe Collections
+Legacy: Vector, Hashtable
+
+Wrapper methods: Collections.synchronizedList(...)
+
+Concurrent collections:
+
+ConcurrentHashMap
+
+CopyOnWriteArrayList
+
+BlockingQueue
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 9. Streams and Collections
+
+ava 8 introduced Streams API, allowing functional-style operations:
+List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
+names.stream()
+     .filter(name -> name.startsWith("A"))
+     .forEach(System.out::println); // prints "Alice"
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 10. When to Use What?
+
+| Use Case                    | Choose This      |
+| --------------------------- | ---------------- |
+| Need random access          | `ArrayList`      |
+| Frequent inserts/deletes    | `LinkedList`     |
+| No duplicates, fast lookups | `HashSet`        |
+| Sorted unique elements      | `TreeSet`        |
+| Key-value pairs             | `HashMap`        |
+| Sorted keys                 | `TreeMap`        |
+| Queue behavior              | `Queue`, `Deque` |
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 Tips to Master Java Collections
+
+Learn the interfaces first (List, Set, Map, Queue).
+Understand the time complexity of operations (e.g., add, remove, get).
+Use generics to avoid casting and ensure type safety.
+
+Prefer interfaces over concrete classes in declarations:
+List<String> list = new ArrayList<>();
+
+Learn Collections & Arrays utility methods.
+Explore Streams API for advanced processing.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
