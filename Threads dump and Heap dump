@@ -1,0 +1,128 @@
+Thread Dumps and Heap Dumps — two of the most powerful tools in diagnosing Java application problems like performance bottlenecks, memory leaks, deadlocks, and high CPU usage.
+
+🧵 1. What is a Thread Dump?
+
+A thread dump is a snapshot of all the threads in a Java Virtual Machine (JVM) at a given moment, showing:
+Thread states (e.g., RUNNABLE, BLOCKED, WAITING)
+Stack traces for each thread
+Locks they hold or wait on
+----------------------------------------------------------------------------------------------------------------------------------------------------
+📌 When to Use a Thread Dump
+
+Detecting deadlocks
+Analyzing high CPU usage
+Diagnosing blocked or stuck threads
+Understanding concurrent execution
+----------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Simple Example: Generating Thread Dump
+
+Option 1: With command line
+jstack <pid>
+
+Option 2: Programmatically (JDK 9+)
+Thread.getAllStackTraces().forEach((t, s) -> {
+    System.out.println("Thread: " + t.getName());
+    for (StackTraceElement e : s) {
+        System.out.println("\tat " + e);
+    }
+});
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+🚨 Complex Thread Issue: Deadlock
+public class Deadlock {
+    public static void main(String[] args) {
+        Object lock1 = new Object();
+        Object lock2 = new Object();
+
+        Thread t1 = new Thread(() -> {
+            synchronized (lock1) {
+                sleep(100);
+                synchronized (lock2) {
+                    System.out.println("Thread 1 done");
+                }
+            }
+        });
+
+        Thread t2 = new Thread(() -> {
+            synchronized (lock2) {
+                sleep(100);
+                synchronized (lock1) {
+                    System.out.println("Thread 2 done");
+                }
+            }
+        });
+
+        t1.start(); t2.start();
+    }
+
+    static void sleep(int ms) {
+        try { Thread.sleep(ms); } catch (Exception e) {}
+    }
+}
+----------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 2. What is a Heap Dump?
+
+A heap dump is a snapshot of all objects in memory at a specific point in time.
+
+Contains:
+
+Classes, fields, and references
+Object size and count
+Root objects (GC roots)
+Object graph (who is referencing what)
+----------------------------------------------------------------------------------------------------------------------------------------------------
+📌 When to Use a Heap Dump
+
+Troubleshooting memory leaks
+Investigating OutOfMemoryError
+Analyzing large memory consumption
+Seeing which objects are retained
+----------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Generating a Heap Dump
+
+From JVM:
+jmap -dump:live,format=b,file=heapdump.hprof <pid>
+----------------------------------------------------------------------------------------------------------------------------------------------------
+📊 Analyzing a Heap Dump
+
+Use tools like:
+Eclipse MAT (Memory Analyzer Tool)
+VisualVM
+YourKit
+JProfiler
+----------------------------------------------------------------------------------------------------------------------------------------------------
+🔍 Simple Memory Leak Example
+import java.util.*;
+
+public class MemoryLeak {
+    static List<byte[]> leakyList = new ArrayList<>();
+
+    public static void main(String[] args) {
+        while (true) {
+            leakyList.add(new byte[1024 * 1024]); // 1MB
+            sleep(100);
+        }
+    }
+
+    static void sleep(int ms) {
+        try { Thread.sleep(ms); } catch (Exception e) {}
+    }
+}
+
+🔎 Heap Dump Will Show:
+
+leakyList holding thousands of byte[]
+Strong reference from static field → memory not GC'd
+Eclipse MAT: "Biggest objects by retained size"
+----------------------------------------------------------------------------------------------------------------------------------------------------
+🚀 Summary
+
+| Feature      | Thread Dump                          | Heap Dump                             |
+| ------------ | ------------------------------------ | ------------------------------------- |
+| Purpose      | Thread states & locks                | Object memory usage                   |
+| Use Cases    | Deadlocks, CPU issues, stuck threads | Memory leaks, OOM, retention analysis |
+| Tools        | `jstack`, VisualVM                   | `jmap`, Eclipse MAT, YourKit          |
+| Output       | Stack traces                         | Binary file (`.hprof`)                |
+| Runtime Cost | Low (text)                           | High (large file, pause time)         |
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
