@@ -1,0 +1,288 @@
+🔍 1. Stack vs Heap – The Basics
+
+| Aspect      | Stack Memory                               | Heap Memory                          |
+| ----------- | ------------------------------------------ | ------------------------------------ |
+| Used For    | Method calls, local primitives, references | Objects and class instances          |
+| Lifespan    | Short-lived (tied to method calls)         | Long-lived (until garbage collected) |
+| Memory Size | Small                                      | Large                                |
+| Speed       | Faster (because of LIFO order)             | Slower                               |
+| Managed By  | JVM automatically                          | JVM + Garbage Collector              |
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📘 2. Simple Example
+
+public class Example {
+    public static void main(String[] args) {
+        int x = 10;                  // Stored in stack
+        String name = "John";       // Reference stored in stack, actual object in heap
+        Person p = new Person();    // Reference p in stack, object in heap
+    }
+}
+
+class Person {
+    int age = 25;
+}
+
+
+🧠 What Happens in Memory:
+x (primitive int) → stored directly on the stack.
+
+"John" is a String literal → stored in String pool (part of heap).
+
+name → reference to heap object (String).
+
+p → reference in stack pointing to Person object in heap.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔁 3. Stack Memory in Method Calls
+
+public class StackExample {
+    public static void main(String[] args) {
+        int result = add(5, 10);
+        System.out.println(result);
+    }
+
+    static int add(int a, int b) {
+        int sum = a + b;
+        return sum;
+    }
+}
+
+
+🔍 Memory Flow:
+main() → stack frame created
+
+add(5, 10) → new stack frame:
+
+a and b are local variables on stack.
+
+sum also on stack.
+
+After method returns → add's stack frame destroyed.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧩 4. Heap Memory with Objects and References
+
+public class HeapExample {
+    public static void main(String[] args) {
+        Book book1 = new Book("Java");
+        Book book2 = book1;
+        book1.title = "Advanced Java";
+        System.out.println(book2.title);  // Outputs: Advanced Java
+    }
+}
+
+class Book {
+    String title;
+
+    Book(String title) {
+        this.title = title;
+    }
+}
+
+
+🔍 Explanation:
+Both book1 and book2 point to the same object in heap.
+Changing book1.title affects book2.title because they refer to the same memory location.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🗑️ 5. Garbage Collection
+
+Garbage Collector (GC) runs automatically and frees up heap memory by removing unreachable objects.
+public class GCExample {
+    public static void main(String[] args) {
+        Book b1 = new Book("Java");
+        b1 = new Book("Python"); // The "Java" object is now eligible for GC
+    }
+}
+
+"Java" object becomes unreachable after b1 points to "Python".
+GC will eventually reclaim the memory used by "Java" object.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 6. Advanced Example: Multiple Objects & Methods
+
+public class AdvancedMemory {
+    public static void main(String[] args) {
+        Car car = new Car("Tesla");
+        drive(car);
+    }
+
+    static void drive(Car c) {
+        Engine e = new Engine("Electric");
+        c.setEngine(e);
+    }
+}
+
+class Car {
+    String model;
+    Engine engine;
+
+    Car(String model) {
+        this.model = model;
+    }
+
+    void setEngine(Engine engine) {
+        this.engine = engine;
+    }
+}
+
+class Engine {
+    String type;
+
+    Engine(String type) {
+        this.type = type;
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 Stack and Heap Mapping:
+main() stack frame:
+
+car is a reference on the stack pointing to Car("Tesla") in heap.
+
+drive() stack frame:
+
+c is a reference to the same Car object in heap.
+
+e is a reference to Engine("Electric") in heap.
+
+Once drive() ends → e and c go out of scope (stack frame destroyed).
+
+But Car.engine still references Engine → not garbage collected.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🛠 7. Visual Representation
+Stack (top to bottom, LIFO):
+
+| drive() stack frame |
+|  e --> Engine obj   |
+|  c --> Car obj      |
+-----------------------
+| main() stack frame  |
+|  car --> Car obj    |
+-----------------------
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Heap:
+
+Car Object @0x123
+  model: "Tesla"
+  engine: Engine @0x456
+
+Engine Object @0x456
+  type: "Electric"
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Concept    | Stack                     | Heap                     |
+| ---------- | ------------------------- | ------------------------ |
+| Stores     | Primitives, refs, methods | Objects, arrays, strings |
+| Managed by | JVM                       | JVM + Garbage Collector  |
+| Lifecycle  | Method-based              | Until GC                 |
+| Speed      | Fast                      | Slower                   |
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Stack Overflow vs Heap OutOfMemoryError
+Stack Overflow: happens when too many nested method calls or very deep recursion cause the stack size to exceed its limit.
+
+Heap OutOfMemoryError: happens when the JVM cannot allocate more objects on the heap because it is full.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔥 1. Escape Analysis
+
+What is it?
+Escape analysis is a JVM optimization that determines if an object can be accessed only within a single thread or method. If the JVM sees the object does not escape, it can:
+
+Allocate the object on the stack instead of the heap (stack allocation is faster and GC-free).
+
+Perform other optimizations like synchronization removal.
+
+Example:
+public class EscapeExample {
+    public static void main(String[] args) {
+        int result = compute();
+        System.out.println(result);
+    }
+
+    static int compute() {
+        Point p = new Point(1, 2);  // Object 'p' may not escape
+        return p.x + p.y;
+    }
+}
+
+class Point {
+    int x, y;
+    Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+What JVM does here:
+Since p is used only inside compute(), it may allocate p on the stack instead of heap (depends on JVM and flags).
+
+This reduces GC overhead.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🧠 What is a Memory Leak in Java?
+A memory leak happens when a Java program holds references to objects that are no longer useful, thus preventing garbage collection from reclaiming the memory they occupy.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📌 Causes of Memory Leaks in Java
+Here are common scenarios where memory leaks occur:
+1. Static Field Holding Objects
+If a class has a static field that holds a reference to an object, the object will remain in memory for the lifetime of the application (unless manually removed).
+
+public class MemoryLeak {
+    private static List<String> cache = new ArrayList<>();
+
+    public void addToCache(String data) {
+        cache.add(data);  // Never cleared, memory keeps growing
+    }
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Unclosed Resources (like Streams, Connections)
+Failing to close streams, sockets, or database connections can lead to resource leaks, which may not be memory leaks in the heap but are equally problematic.
+
+BufferedReader reader = new BufferedReader(new FileReader("file.txt"));
+// Forgetting to close reader: reader.close();
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Internal Caches (Map, HashMap, etc.)
+When objects are added to a collection like Map and never removed, it can lead to memory leaks.
+
+Map<String, Object> cache = new HashMap<>();
+cache.put("key", new Object());  // if not removed, object remains
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4. Poorly Implemented equals() and hashCode()
+If you override equals() and hashCode() incorrectly, you may end up with duplicate keys in HashMap or HashSet, which results in unnecessary object retention.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔍 How to Detect Memory Leaks in Java
+Profiling Tools:
+
+VisualVM
+
+Eclipse Memory Analyzer (MAT)
+
+JProfiler
+
+YourKit
+
+Java Flight Recorder / Mission Control
+
+Heap Dumps: Analyze heap dumps to find objects that shouldn't be there.
+
+GC Logs: Enable GC logs and monitor memory usage patterns.
+
+Leak Suspects: Look for large collections, caches, or static fields that grow over time.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Best Practices to Prevent Memory Leaks
+Use try-with-resources for closing streams and resources.
+
+Use WeakReference / SoftReference for caches.
+
+Manually remove listeners when they are no longer needed.
+
+Clear ThreadLocal variables using remove().
+
+Avoid static references to large objects unless necessary.
+
+Monitor memory usage in production.
+
+Use tools regularly during development and QA to profile and test memory usage.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
