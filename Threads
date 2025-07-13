@@ -1,0 +1,179 @@
+🧵 Java Threads: From Basics to Advanced
+Java supports multithreading, which allows a program to execute multiple parts (threads) simultaneously. This is especially useful for performance, concurrency, and asynchronous tasks.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 1. What is a Thread?
+A thread is a lightweight subprocess, the smallest unit of processing. Java uses java.lang.Thread class to represent threads.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 2. Creating Threads in Java
+There are 2 primary ways to create a thread:
+
+✅ Method 1: Extend the Thread class
+class MyThread extends Thread {
+    public void run() {
+        System.out.println("Thread running: " + Thread.currentThread().getName());
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        MyThread t1 = new MyThread();
+        t1.start(); // start a new thread
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Method 2: Implement the Runnable interface
+class MyRunnable implements Runnable {
+    public void run() {
+        System.out.println("Runnable running: " + Thread.currentThread().getName());
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Thread t1 = new Thread(new MyRunnable());
+        t1.start(); // starts a new thread
+    }
+}
+
+🔸 run() is what the thread will execute.
+🔸 start() begins the new thread; run() just runs on the current thread.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 3. Thread Lifecycle
+A thread goes through the following states:
+New – Thread created but not started
+Runnable – Ready to run but waiting for CPU
+Running – Currently executing
+Blocked/Waiting – Waiting for resources or signal
+Terminated – Finished execution
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 4. Thread Methods
+
+| Method             | Description                  |
+| ------------------ | ---------------------------- |
+| `start()`          | Starts the thread            |
+| `run()`            | Code inside thread           |
+| `sleep(ms)`        | Sleeps the thread            |
+| `join()`           | Waits for a thread to finish |
+| `isAlive()`        | Checks if thread is alive    |
+| `setPriority(int)` | Set thread priority          |
+| `interrupt()`      | Interrupts the thread        |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Example: Sleep and Join
+
+class MyThread extends Thread {
+    public void run() {
+        try {
+            Thread.sleep(1000); // Sleep for 1 second
+            System.out.println("Thread done sleeping");
+        } catch (InterruptedException e) {
+            System.out.println("Thread interrupted");
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws InterruptedException {
+        MyThread t1 = new MyThread();
+        t1.start();
+
+        t1.join(); // Wait for t1 to finish
+        System.out.println("Main thread finished after t1");
+    }
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+join method:
+
+In Java, the join() method is a part of the Thread class, and it is used to pause the execution of the current thread until the thread on which join() was called finishes execution.
+Syntax:
+thread.join(); // waits indefinitely until the thread completes
+thread.join(milliseconds); // waits for a specified time at most
+
+Why use join()?
+Suppose you have multiple threads running, and you want to wait for one of them to finish before continuing. You use join() for that.
+
+Example:
+class MyThread extends Thread {
+    public void run() {
+        for(int i = 1; i <= 5; i++) {
+            System.out.println(Thread.currentThread().getName() + ": " + i);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                System.out.println("Interrupted");
+            }
+        }
+    }
+}
+
+public class JoinExample {
+    public static void main(String[] args) {
+        MyThread t1 = new MyThread();
+        MyThread t2 = new MyThread();
+
+        t1.start();
+        try {
+            t1.join(); // Wait for t1 to finish before starting t2
+        } catch (InterruptedException e) {
+            System.out.println("Main thread interrupted");
+        }
+
+        t2.start();
+    }
+}
+
+Output behavior:
+t1 starts and finishes.
+Only after t1 completes does t2 begin.
+
+Variants:
+join() – waits until the thread is dead.
+join(long millis) – waits up to millis milliseconds.
+join(long millis, int nanos) – waits up to the specified time with nanosecond precision.
+
+Notes:
+If the thread you're joining is already finished, join() returns immediately.
+It can throw InterruptedException, so it must be handled or declared.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 5. Thread Synchronization
+When multiple threads access shared resources (e.g., variables), data inconsistency can happen. Use synchronized keyword to ensure only one thread accesses the resource at a time.
+
+Example: Without Synchronization (Race Condition)
+class Counter {
+    int count = 0;
+
+    void increment() {
+        count++;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws InterruptedException {
+        Counter c = new Counter();
+
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i < 10000; i++) c.increment();
+        });
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i < 10000; i++) c.increment();
+        });
+
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+
+        System.out.println("Final count: " + c.count); // Likely less than 20000
+    }
+}
+
+✅ Fixing it with synchronized
+class Counter {
+    int count = 0;
+
+    synchronized void increment() {
+        count++;
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
