@@ -175,5 +175,252 @@ class Counter {
     }
 }
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔧 Basics of Threads and Shared Resources
+imagine two threads working with a shared object (like a message queue or buffer). To avoid conflicts and ensure correct sequencing, they need to communicate and coordinate. That’s where wait() and notify() come into play.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 Concept Overview
+Causes the current thread to wait until another thread notifies it.
+It releases the lock (monitor) on the object.
+Must be called from a synchronized context.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ notify()
+Wakes up one thread that is waiting on the object’s monitor.
+The awakened thread must re-acquire the lock before it can continue.
+Also must be called from a synchronized context.
+
+✅ notifyAll()
+Wakes up all threads that are waiting on the object’s monitor.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧩 Key Points
+
+| Feature                   | `wait()`               | `notify()` | `notifyAll()` |
+| ------------------------- | ---------------------- | ---------- | ------------- |
+| From Class                | Object                 | Object     | Object        |
+| Synchronization Required? | ✅ Yes                 | ✅ Yes    | ✅ Yes       |
+| Releases Lock?            | ✅ Yes                 | ❌ No     | ❌ No        |
+| Wakes Threads?            | ❌ No                  | ✅ One    | ✅ All       |
+| Throws Exception          | `InterruptedException` 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class Shared {
+    synchronized void printEven() throws InterruptedException {
+        System.out.println("Waiting...");
+        wait(); // waits for notify
+        System.out.println("Even Printed!");
+    }
+
+    synchronized void printOdd() {
+        System.out.println("Odd Printed!");
+        notify(); // resumes waiting thread
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Shared shared = new Shared();
+
+        Thread t1 = new Thread(() -> {
+            try {
+                shared.printEven();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        Thread t2 = new Thread(() -> shared.printOdd());
+
+        t1.start();
+        try { Thread.sleep(1000); } catch (Exception e) {}
+        t2.start();
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 What is a Thread Pool?
+A thread pool is a collection of pre-instantiated, reusable threads that are managed by a system or framework. Instead of creating and destroying threads for every task, a thread pool maintains a pool of worker threads that can be reused for multiple tasks.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Why Use a Thread Pool?
+Creating a new thread is a costly operation in terms of time and system resources. If your application spawns many threads (e.g., for handling thousands of client requests), this can lead to:
+
+High memory usage
+Thread contention
+CPU context switching overhead
+
+Thread pools help solve this by:
+Limiting the number of concurrent threads
+Reusing threads for multiple tasks
+Reducing latency due to thread creation/destruction
+Improving system stability and performance
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Key Concepts
+
+| Term                  | Description                                                           |
+| --------------------- | --------------------------------------------------------------------- |
+| **Worker Thread**     | A thread in the pool that executes tasks.                             |
+| **Task/Job**          | A unit of work submitted to the thread pool.                          |
+| **Task Queue**        | A queue that holds submitted tasks until a worker thread is free.     |
+| **Core Pool Size**    | Minimum number of threads kept alive in the pool, even if idle.       |
+| **Maximum Pool Size** | Maximum number of threads allowed in the pool.                        |
+| **Thread Factory**    | Used to create new threads when needed.                               |
+| **Rejection Policy**  | What to do if the task queue is full and the pool is at its max size. |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 How Thread Pool Works
+
+A task is submitted to the thread pool.
+If a thread is idle, it picks up the task.
+If all threads are busy and the task queue has space, the task is queued.
+If the queue is full and pool has not reached maximum size, a new thread is created.
+If the pool is at max size and queue is full, the task is rejected or handled based on the rejection policy
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Thread Pool in Java (Example)
+
+Java provides a thread pool implementation via the ExecutorService framework.
+
+ExecutorService executor = Executors.newFixedThreadPool(4);
+
+for (int i = 0; i < 10; i++) {
+    executor.submit(() -> {
+        System.out.println("Task executed by: " + Thread.currentThread().getName());
+    });
+}
+
+executor.shutdown();
+
+
+In this example:
+
+A thread pool with 4 threads is created.
+10 tasks are submitted.
+Only 4 threads are used to execute them (others wait in the queue).
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Thread Pool Types
+
+| Type                     | Description                                                               |
+| ------------------------ | ------------------------------------------------------------------------- |
+| **FixedThreadPool**      | Fixed number of threads; suitable for a known number of concurrent tasks. |
+| **CachedThreadPool**     | Creates new threads as needed, reuses idle threads. Can grow infinitely.  |
+| **SingleThreadExecutor** | A single worker thread; tasks are executed sequentially.                  |
+| **ScheduledThreadPool**  | Supports task scheduling (e.g., run after delay or periodically).         |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Thread Pool Best Practices
+
+Avoid unbounded pools (like newCachedThreadPool) unless you manage task load carefully.
+Use bounded queues to prevent memory exhaustion.
+Always shutdown the pool when done.
+Tune the pool size based on available CPUs and task nature (CPU-bound vs I/O-bound).
+Monitor thread pool metrics (active threads, queue size, etc.).
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Real-World Use Cases
+
+Web servers handling HTTP requests
+Background task processing
+Parallelizing independent computations
+Asynchronous event handling systems
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+The Fork/Join Framework in Java is a framework introduced in Java 7 to take advantage of multiple processors (parallelism). It is part of the java.util.concurrent package and is designed to recursively break down tasks into smaller subtasks, process them in parallel, and then combine (or join) the results.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📌 Why Use the Fork/Join Framework?
+It’s ideal for divide-and-conquer algorithms, where:
+
+A big task can be split into smaller tasks.
+
+These smaller tasks are processed concurrently.
+
+The results of subtasks are combined to form the final result.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔧 Core Components
+1. ForkJoinPool
+A specialized thread pool designed for the framework.
+
+Manages a set of worker threads and handles task scheduling efficiently using work stealing.
+
+2. ForkJoinTask<V>
+The base class for tasks submitted to a ForkJoinPool.
+
+Two main subclasses:
+
+RecursiveTask<V> – returns a result.
+
+RecursiveAction – does not return a result (i.e., void).
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📘 Basic Flow
+Define a task by extending RecursiveTask (or RecursiveAction).
+
+Inside compute(), check if the task is small enough to compute directly.
+
+If not, split it into smaller subtasks (fork() them).
+
+Wait for results using join().
+
+Combine and return the result.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧪 Example: Sum of an Array (RecursiveTask)
+
+import java.util.concurrent.*;
+
+public class ArraySum extends RecursiveTask<Long> {
+    private static final int THRESHOLD = 500;
+    private final long[] array;
+    private final int start, end;
+
+    public ArraySum(long[] array, int start, int end) {
+        this.array = array;
+        this.start = start;
+        this.end = end;
+    }
+
+    @Override
+    protected Long compute() {
+        if (end - start <= THRESHOLD) {
+            long sum = 0;
+            for (int i = start; i < end; i++) sum += array[i];
+            return sum;
+        } else {
+            int mid = (start + end) / 2;
+            ArraySum left = new ArraySum(array, start, mid);
+            ArraySum right = new ArraySum(array, mid, end);
+            left.fork();                        // async execution
+            long rightResult = right.compute(); // sync execution
+            long leftResult = left.join();     // wait for left
+            return leftResult + rightResult;
+        }
+    }
+
+    public static void main(String[] args) {
+        long[] array = new long[10000];
+        for (int i = 0; i < array.length; i++) array[i] = i;
+        
+        ForkJoinPool pool = new ForkJoinPool();
+        ArraySum task = new ArraySum(array, 0, array.length);
+        long result = pool.invoke(task);
+        System.out.println("Sum = " + result);
+    }
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Key Concepts
+fork() – schedules a subtask for asynchronous execution.
+
+join() – waits for the subtask to finish and returns the result.
+
+invoke() – starts a task and waits for its completion.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🚀 Advantages
+Efficient parallel execution for recursive tasks.
+
+Uses work-stealing algorithm (idle threads "steal" tasks from busy ones).
+
+Better than ExecutorService for tasks with recursive decomposition.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+❗ When not to use
+For I/O-bound tasks (it's CPU-optimized).
+
+When tasks are not easily divisible or parallelizable.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 
