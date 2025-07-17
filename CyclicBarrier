@@ -1,0 +1,131 @@
+🔄 What is CyclicBarrier in Java?
+CyclicBarrier is a synchronization aid that allows a set of threads to wait for each other at a common barrier point. It’s called cyclic because it can be reused after the waiting threads are released.
+
+Think of it as a checkpoint — all threads must arrive at this checkpoint before any of them can proceed.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 How it works
+You initialize a CyclicBarrier with a number of parties (threads) that must wait.
+
+Each thread calls barrier.await() to indicate it's ready.
+
+When all threads have called await(), the barrier is tripped, and all threads are released.
+
+The barrier is reset automatically, so it can be reused.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Core Methods
+CyclicBarrier(int parties)
+Creates a barrier for a given number of threads.
+
+CyclicBarrier(int parties, Runnable barrierAction)
+Same as above, but also runs a task once the barrier is tripped.
+
+await()
+Each thread calls this to wait. It blocks until all have reached the barrier.
+
+await(timeout, unit)
+Waits only for a limited time.
+
+reset()
+Resets the barrier to its initial state.
+
+getNumberWaiting()
+Returns the number of threads currently waiting.
+
+isBroken()
+Returns true if the barrier was broken (e.g., due to timeout or interruption).
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧪 Example Use Case: Synchronizing Threads
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+
+public class CyclicBarrierExample {
+
+    public static void main(String[] args) {
+        int numThreads = 3;
+
+        CyclicBarrier barrier = new CyclicBarrier(numThreads, () -> {
+            System.out.println("All threads reached the barrier. Proceeding together...");
+        });
+
+        for (int i = 0; i < numThreads; i++) {
+            new Thread(new Worker(barrier, i)).start();
+        }
+    }
+}
+
+class Worker implements Runnable {
+    private final CyclicBarrier barrier;
+    private final int id;
+
+    Worker(CyclicBarrier barrier, int id) {
+        this.barrier = barrier;
+        this.id = id;
+    }
+
+    public void run() {
+        try {
+            System.out.println("Thread " + id + " working...");
+            Thread.sleep(1000 + (long) (Math.random() * 2000));
+            System.out.println("Thread " + id + " reached barrier.");
+            barrier.await(); // Wait at the barrier
+            System.out.println("Thread " + id + " passed the barrier.");
+        } catch (InterruptedException | BrokenBarrierException e) {
+            System.out.println("Thread " + id + " interrupted or barrier broken.");
+        }
+    }
+}
+
+🧮 Output Flow Example
+Thread 0 working...
+Thread 1 working...
+Thread 2 working...
+Thread 1 reached barrier.
+Thread 0 reached barrier.
+Thread 2 reached barrier.
+All threads reached the barrier. Proceeding together...
+Thread 2 passed the barrier.
+Thread 1 passed the barrier.
+Thread 0 passed the barrier.
+All threads waited at the barrier until everyone arrived. Then they proceeded.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔁 Why "Cyclic"?
+Unlike CountDownLatch (which is one-time), CyclicBarrier can be reused. If your threads are doing work in phases or rounds, you can use the same barrier repeatedly.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔥 Bonus: barrierAction
+You can pass a Runnable to CyclicBarrier to run once per cycle after all threads arrive.
+CyclicBarrier barrier = new CyclicBarrier(3, () -> {
+    System.out.println(">>> All players ready. Starting next round...");
+});
+
+This is useful for coordination logic (like updating UI, logging, etc.).
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚠️ Exceptions & Pitfalls
+BrokenBarrierException: Thrown if the barrier is reset or broken while waiting.
+
+Timeouts: You can set a max wait time; if it expires, the barrier breaks.
+
+reset(): Use with caution. Resets the barrier, potentially disrupting waiting threads.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🆚 CyclicBarrier vs CountDownLatch
+
+| Feature              | CyclicBarrier              | CountDownLatch                   |
+| -------------------- | -------------------------- | -------------------------------- |
+| Resettable           | ✅ Yes                      | ❌ No                             |
+| Waiting for all      | ✅ All threads wait         | ❌ Only one (or few) threads wait |
+| Action on completion | ✅ Optional Runnable action | ❌ No action support              |
+| Reusability          | ✅ Yes (cyclic behavior)    | ❌ One-time use                   |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 When to Use CyclicBarrier
+Coordinating phases in parallel algorithms.
+
+Multiplayer game rounds.
+
+Simulation steps in scientific modeling.
+
+Any use-case where all threads need to sync at a point before proceeding.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
