@@ -1,0 +1,97 @@
+🧱 1. Basic Concepts
+🔹 What is CountDownLatch?
+CountDownLatch is a synchronization aid that allows one or more threads to wait until a set of operations being performed in other threads completes.
+
+Think of it like a gate that only opens when the countdown reaches zero.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Constructor
+public CountDownLatch(int count)
+
+count: the number of times countDown() must be called before threads can pass through await().
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 How it works
+It’s initialized with a count (usually the number of threads or tasks you’re waiting for). Each time a task finishes, it calls countDown(), which decrements the count by 1.
+
+Once the count reaches zero, any threads that were waiting on the latch via await() are allowed to proceed.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Core Methods
+CountDownLatch(int count)
+Constructs the latch with the given count.
+
+void await() throws InterruptedException
+Causes the current thread to wait until the count reaches zero.
+
+void countDown()
+Decrements the count. If count becomes zero, releases all waiting threads.
+
+long getCount()
+Returns the current count (not often used in production).
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧪 Example Use Case: Waiting for Threads to Finish
+
+import java.util.concurrent.CountDownLatch;
+
+public class CountDownLatchExample {
+
+    public static void main(String[] args) throws InterruptedException {
+        int numWorkers = 3;
+        CountDownLatch latch = new CountDownLatch(numWorkers);
+
+        for (int i = 0; i < numWorkers; i++) {
+            new Thread(new Worker(i + 1, latch)).start();
+        }
+
+        // Main thread waits until all workers finish
+        latch.await();
+        System.out.println("All workers finished. Main thread proceeding.");
+    }
+}
+
+class Worker implements Runnable {
+    private final int workerId;
+    private final CountDownLatch latch;
+
+    public Worker(int workerId, CountDownLatch latch) {
+        this.workerId = workerId;
+        this.latch = latch;
+    }
+
+    public void run() {
+        try {
+            System.out.println("Worker " + workerId + " is doing work...");
+            Thread.sleep(1000 + (long) (Math.random() * 2000)); // simulate work
+            System.out.println("Worker " + workerId + " finished.");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            latch.countDown(); // Tell latch we're done
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧮 What’s Happening Here?
+We initialize the latch with 3.
+
+We start 3 worker threads. Each does some work and then calls countDown().
+
+The main thread calls await() — it waits until all workers have finished.
+
+Once all workers have decremented the count to 0, await() unblocks.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🛠️ Real-World Use Cases
+Server startup: Wait until multiple services (DB, Cache, API) are initialized.
+
+Test parallel code: Fire multiple threads and wait for all to complete before asserting.
+
+Split a big task: Break into smaller threads and wait for all to finish before combining results.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚠️ Important Notes
+CountDownLatch is one-time use: Once the count reaches zero, it cannot be reset.
+
+For reusable behavior, use CyclicBarrier or Semaphore.
+
+countDown() can be called from multiple threads or the same thread.
+
+await() is blocking — it waits until the count hits 0.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
