@@ -1,0 +1,160 @@
+Java's Semaphore class (from java.util.concurrent) is a powerful synchronization aid that helps control access to a shared resource using permits. It’s commonly used to implement resource pools, throttling, or to restrict the number of threads executing a particular section of code concurrently.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔍 What Is a Semaphore?
+A semaphore manages a set of permits. Threads acquire permits before proceeding and release them when done. If no permit is available, the thread is blocked until one is released.
+
+Types of Semaphores:
+Counting Semaphore – Has more than one permit.
+
+Binary Semaphore – Only has one permit (works like a mutex).
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📘 Basic API Overview
+
+public class Semaphore {
+    Semaphore(int permits)         // Creates a semaphore with the given number of permits
+    Semaphore(int permits, boolean fair) // Creates a semaphore with a fairness policy
+
+    void acquire() throws InterruptedException  // Acquires a permit, blocks if unavailable
+    boolean tryAcquire()                        // Tries to acquire a permit without blocking
+    void release()                              // Releases a permit
+
+    int availablePermits()                      // Returns the current number of available permits
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 1: Basic Semaphore Usage (Binary Semaphore / Mutex)
+
+import java.util.concurrent.Semaphore;
+
+public class Printer {
+    private final Semaphore semaphore = new Semaphore(1); // Binary semaphore
+
+    public void print(String message) {
+        try {
+            semaphore.acquire();
+            System.out.println(Thread.currentThread().getName() + " is printing: " + message);
+            Thread.sleep(1000); // Simulate printing
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            semaphore.release();
+        }
+    }
+
+    public static void main(String[] args) {
+        Printer printer = new Printer();
+        Runnable task = () -> printer.print("Hello World");
+
+        for (int i = 0; i < 5; i++) {
+            new Thread(task).start();
+        }
+    }
+}
+
+Output (serialized printing):
+Thread-0 is printing: Hello World
+Thread-1 is printing: Hello World
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 2: Limiting Access with Counting Semaphore (e.g., Thread Pool)
+
+import java.util.concurrent.Semaphore;
+
+public class NetworkConnection {
+    private final Semaphore semaphore = new Semaphore(3); // Only 3 threads can connect at once
+
+    public void connect() {
+        try {
+            semaphore.acquire();
+            System.out.println(Thread.currentThread().getName() + " connected");
+            Thread.sleep(2000); // Simulate connection work
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            System.out.println(Thread.currentThread().getName() + " disconnected");
+            semaphore.release();
+        }
+    }
+
+    public static void main(String[] args) {
+        NetworkConnection conn = new NetworkConnection();
+        Runnable task = conn::connect;
+
+        for (int i = 0; i < 10; i++) {
+            new Thread(task).start();
+        }
+    }
+}
+
+Output:
+Only 3 threads work at the same time; others wait.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 3: Fair Semaphore
+
+Semaphore fairSemaphore = new Semaphore(1, true); // Fair policy (FIFO)
+
+This ensures that the longest-waiting thread gets the permit first, which is useful in high-contention environments to prevent starvation.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 4: Semaphore for Resource Pool
+
+import java.util.concurrent.Semaphore;
+import java.util.LinkedList;
+
+class ResourcePool {
+    private final Semaphore semaphore;
+    private final LinkedList<String> resources;
+
+    public ResourcePool(int size) {
+        this.semaphore = new Semaphore(size);
+        this.resources = new LinkedList<>();
+        for (int i = 1; i <= size; i++) {
+            resources.add("Resource-" + i);
+        }
+    }
+
+    public String acquireResource() throws InterruptedException {
+        semaphore.acquire();
+        synchronized (resources) {
+            return resources.poll();
+        }
+    }
+
+    public void releaseResource(String resource) {
+        synchronized (resources) {
+            resources.add(resource);
+        }
+        semaphore.release();
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        ResourcePool pool = new ResourcePool(2);
+
+        Runnable task = () -> {
+            try {
+                String res = pool.acquireResource();
+                System.out.println(Thread.currentThread().getName() + " got " + res);
+                Thread.sleep(1000); // Use resource
+                System.out.println(Thread.currentThread().getName() + " releasing " + res);
+                pool.releaseResource(res);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+
+        for (int i = 0; i < 5; i++) {
+            new Thread(task).start();
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 Key Concepts Recap
+
+| Concept                | Description                                                        |
+| ---------------------- | ------------------------------------------------------------------ |
+| **Permit**             | Unit of access control; `acquire()` to take, `release()` to return |
+| **Fairness**           | Ensures first-come-first-served access                             |
+| **Binary Semaphore**   | Works like a mutex (1 permit)                                      |
+| **Counting Semaphore** | Allows limited concurrent access                                   |
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
