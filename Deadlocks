@@ -1,0 +1,382 @@
+🚧 What is a Deadlock?
+A deadlock in Java is a situation in multithreaded programming where two or more threads are blocked forever, each waiting for the other to release a resource (usually an object lock).
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔁 Basic Deadlock Scenario:
+
+Thread A holds Lock 1 and waits for Lock 2.
+Thread B holds Lock 2 and waits for Lock 1.
+Both threads wait forever. That’s a deadlock.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔒 Locks and Threads in Java
+Java uses an intrinsic lock (monitor) for every object. When a thread enters a synchronized block or method, it acquires the lock on that object. If another thread wants to enter a synchronized block on the same object, it has to wait until the lock is released.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Step-by-Step: Simple Deadlock Example
+🚩 Example 1: The Classic Deadlock
+
+public class SimpleDeadlock {
+
+    static class Friend {
+        private final String name;
+
+        public Friend(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public synchronized void bow(Friend bower) {
+            System.out.println(this.name + " is bowing to " + bower.getName());
+            bower.bowBack(this);
+        }
+
+        public synchronized void bowBack(Friend bower) {
+            System.out.println(this.name + " is bowing back to " + bower.getName());
+        }
+    }
+
+    public static void main(String[] args) {
+        final Friend alice = new Friend("Alice");
+        final Friend bob = new Friend("Bob");
+
+        // Thread 1
+        new Thread(() -> alice.bow(bob)).start();
+
+        // Thread 2
+        new Thread(() -> bob.bow(alice)).start();
+    }
+}
+
+❗What’s happening?
+Thread 1: Alice calls bow(bob) → holds lock on Alice, waits for Bob.
+Thread 2: Bob calls bow(alice) → holds lock on Bob, waits for Alice.
+Deadlock occurs: Each thread is waiting for the other's lock.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 Understanding Through a Diagram
+Thread-1:          | Thread-2:
+------------------ | ------------------
+lock(Alice)        | lock(Bob)
+call bob.bowBack() | call alice.bowBack()
+needs lock(Bob)    | needs lock(Alice)
+DEADLOCK           | DEADLOCK
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔄 Slightly More Complex Deadlock
+🚩 Example 2: Deadlock with Multiple Resources
+
+public class ResourceDeadlock {
+    private static final Object resource1 = new Object();
+    private static final Object resource2 = new Object();
+
+    public static void main(String[] args) {
+        Thread t1 = new Thread(() -> {
+            synchronized (resource1) {
+                System.out.println("Thread 1: locked resource 1");
+
+                try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+
+                synchronized (resource2) {
+                    System.out.println("Thread 1: locked resource 2");
+                }
+            }
+        });
+
+        Thread t2 = new Thread(() -> {
+            synchronized (resource2) {
+                System.out.println("Thread 2: locked resource 2");
+
+                try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+
+                synchronized (resource1) {
+                    System.out.println("Thread 2: locked resource 1");
+                }
+            }
+        });
+
+        t1.start();
+        t2.start();
+    }
+}
+
+❗What causes deadlock here?
+Thread 1 locks resource1, waits for resource2.
+Thread 2 locks resource2, waits for resource1.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔍 Detecting Deadlocks
+
+Use tools like:
+JVisualVM or JConsole (comes with JDK)
+Use jstack to analyze thread dump.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Avoiding Deadlock: Best Practices
+
+1. Lock ordering
+Always acquire locks in a fixed global order.
+// Always lock resource1 before resource2
+synchronized(resource1) {
+    synchronized(resource2) {
+        // do something
+    }
+}
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Use tryLock() from java.util.concurrent.locks
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class TryLockExample {
+    static Lock lock1 = new ReentrantLock();
+    static Lock lock2 = new ReentrantLock();
+
+    public static void main(String[] args) {
+        Thread t1 = new Thread(() -> {
+            while (true) {
+                if (lock1.tryLock()) {
+                    try {
+                        Thread.sleep(50);
+                        if (lock2.tryLock()) {
+                            try {
+                                System.out.println("Thread 1: Acquired both locks");
+                                break;
+                            } finally {
+                                lock2.unlock();
+                            }
+                        }
+                    } catch (InterruptedException ignored) {
+                    } finally {
+                        lock1.unlock();
+                    }
+                }
+            }
+        });
+
+        Thread t2 = new Thread(() -> {
+            while (true) {
+                if (lock2.tryLock()) {
+                    try {
+                        Thread.sleep(50);
+                        if (lock1.tryLock()) {
+                            try {
+                                System.out.println("Thread 2: Acquired both locks");
+                                break;
+                            } finally {
+                                lock1.unlock();
+                            }
+                        }
+                    } catch (InterruptedException ignored) {
+                    } finally {
+                        lock2.unlock();
+                    }
+                }
+            }
+        });
+
+        t1.start();
+        t2.start();
+    }
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔚 Summary
+
+| Concept           | Description                                 |
+| ----------------- | ------------------------------------------- |
+| What is Deadlock? | Threads waiting on each other forever.      |
+| Causes            | Circular wait, holding multiple locks.      |
+| Detection         | Thread dumps, tools like VisualVM.          |
+| Prevention        | Lock ordering, tryLock, timeout mechanisms. |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+💰 Real-World Deadlock Example: Bank Transfer
+🧠 Scenario:
+Two bank accounts: Account A and Account B
+
+Two threads:
+Thread 1 tries to transfer money from A ➡ B
+Thread 2 tries to transfer money from B ➡ A
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🚩 Problem Code (Deadlock Possible)
+class Account {
+    private int balance = 1000;
+    private final String name;
+
+    public Account(String name) {
+        this.name = name;
+    }
+
+    public void withdraw(int amount) {
+        balance -= amount;
+    }
+
+    public void deposit(int amount) {
+        balance += amount;
+    }
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+
+class Bank {
+    // This method can cause deadlock
+    public void transfer(Account from, Account to, int amount) {
+        synchronized (from) {
+            System.out.println(Thread.currentThread().getName() + ": Locked " + from.getName());
+
+            try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+
+            synchronized (to) {
+                System.out.println(Thread.currentThread().getName() + ": Locked " + to.getName());
+                from.withdraw(amount);
+                to.deposit(amount);
+                System.out.println("Transfer complete: " + amount + " from " + from.getName() + " to " + to.getName());
+            }
+        }
+    }
+}
+
+public class BankDeadlockDemo {
+    public static void main(String[] args) {
+        final Account accountA = new Account("AccountA");
+        final Account accountB = new Account("AccountB");
+        final Bank bank = new Bank();
+
+        // Thread 1: Transfer A -> B
+        Thread t1 = new Thread(() -> bank.transfer(accountA, accountB, 100), "T1");
+
+        // Thread 2: Transfer B -> A
+        Thread t2 = new Thread(() -> bank.transfer(accountB, accountA, 200), "T2");
+
+        t1.start();
+        t2.start();
+    }
+}
+
+🔁 How Deadlock Happens
+
+T1 locks accountA, waits for accountB.
+T2 locks accountB, waits for accountA.
+Neither can proceed — deadlock.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Fixing Deadlock: Lock Ordering
+A good strategy is to enforce a consistent locking order using unique IDs or System.identityHashCode():
+class Bank {
+    public void transfer(Account from, Account to, int amount) {
+        Account firstLock = from.hashCode() < to.hashCode() ? from : to;
+        Account secondLock = from.hashCode() < to.hashCode() ? to : from;
+
+        synchronized (firstLock) {
+            synchronized (secondLock) {
+                from.withdraw(amount);
+                to.deposit(amount);
+                System.out.println("Transfer complete: " + amount + " from " + from.getName() + " to " + to.getName());
+            }
+        }
+    }
+}
+
+🔐 Why this works:
+Lock acquisition always happens in a consistent order.
+Eliminates the possibility of circular wait, and thus deadlock.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔧 Updated Bank Transfer Code with tryLock()
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
+
+class Account {
+    private int balance = 1000;
+    private final String name;
+    private final Lock lock = new ReentrantLock();
+
+    public Account(String name) {
+        this.name = name;
+    }
+
+    public boolean withdraw(int amount) {
+        if (balance < amount) return false;
+        balance -= amount;
+        return true;
+    }
+
+    public void deposit(int amount) {
+        balance += amount;
+    }
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public Lock getLock() {
+        return lock;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+
+class Bank {
+    public void transfer(Account from, Account to, int amount) {
+        boolean fromLocked = false;
+        boolean toLocked = false;
+
+        try {
+            // Try to lock both accounts within a timeout
+            fromLocked = from.getLock().tryLock(1, TimeUnit.SECONDS);
+            toLocked = to.getLock().tryLock(1, TimeUnit.SECONDS);
+
+            if (fromLocked && toLocked) {
+                if (from.withdraw(amount)) {
+                    to.deposit(amount);
+                    System.out.println(Thread.currentThread().getName() +
+                        ": Transferred " + amount + " from " + from.getName() + " to " + to.getName());
+                } else {
+                    System.out.println(Thread.currentThread().getName() +
+                        ": Not enough balance to transfer from " + from.getName());
+                }
+            } else {
+                System.out.println(Thread.currentThread().getName() + ": Could not acquire both locks, transfer skipped");
+            }
+        } catch (InterruptedException e) {
+            System.out.println(Thread.currentThread().getName() + ": Interrupted during transfer");
+        } finally {
+            if (fromLocked) {
+                from.getLock().unlock();
+            }
+            if (toLocked) {
+                to.getLock().unlock();
+            }
+        }
+    }
+}
+
+🧪 Test Driver (Main Method)
+public class BankNoDeadlockDemo {
+    public static void main(String[] args) {
+        final Account accountA = new Account("AccountA");
+        final Account accountB = new Account("AccountB");
+        final Bank bank = new Bank();
+
+        // Thread 1: A ➡ B
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i < 3; i++) {
+                bank.transfer(accountA, accountB, 100);
+            }
+        }, "T1");
+
+        // Thread 2: B ➡ A
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i < 3; i++) {
+                bank.transfer(accountB, accountA, 200);
+            }
+        }, "T2");
+
+        t1.start();
+        t2.start();
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
