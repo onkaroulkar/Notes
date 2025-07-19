@@ -1,0 +1,425 @@
+What is File Handling in Java?
+File Handling in Java means reading from and writing to files on your disk. This is essential for many applications to store data permanently or read data from external sources.
+
+Java provides several classes to work with files, mainly in the packages:
+
+java.io
+java.nio.file (New IO)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. Basic Concepts
+	
+Key Classes:
+File — represents file or directory path.
+FileReader / FileWriter — read/write characters.
+BufferedReader / BufferedWriter — efficient reading/writing.
+FileInputStream / FileOutputStream — read/write bytes.
+Scanner — read formatted input from files.
+PrintWriter — write formatted output.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Simple Example: Writing to a File
+
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class SimpleWrite {
+    public static void main(String[] args) {
+        try {
+            FileWriter writer = new FileWriter("example.txt");
+            writer.write("Hello, this is a simple file write example.");
+            writer.close();
+            System.out.println("Successfully wrote to the file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+}
+
+Creates or overwrites example.txt
+Writes a simple string
+Closes the file to save changes
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Simple Example: Reading from a File
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.IOException;
+
+public class SimpleRead {
+    public static void main(String[] args) {
+        try {
+            FileReader fr = new FileReader("example.txt");
+            BufferedReader br = new BufferedReader(fr);
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            br.close();
+            fr.close();
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+}
+
+Reads text line by line
+Prints each line to console
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4. More Complex Example: Appending to a File
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class AppendToFile {
+    public static void main(String[] args) {
+        try {
+            FileWriter fw = new FileWriter("example.txt", true); // 'true' for append mode
+            fw.write("\nThis line is appended.");
+            fw.close();
+            System.out.println("Appended text successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5. Example: Using Scanner to Read File
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+public class ReadWithScanner {
+    public static void main(String[] args) {
+        try {
+            File file = new File("example.txt");
+            Scanner sc = new Scanner(file);
+
+            while (sc.hasNextLine()) {
+                System.out.println(sc.nextLine());
+            }
+            sc.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+💡 What is Java I/O?
+Java I/O provides a set of stream-oriented classes for reading and writing data (bytes and characters) to files, memory, network, etc.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 1. Byte Streams
+
+Used for handling binary data (images, audio, etc.)
+InputStream — for reading
+OutputStream — for writing
+
+✅ Example: Copying a file using byte streams
+import java.io.*;
+
+public class FileCopyByteStream {
+    public static void main(String[] args) {
+        try (FileInputStream in = new FileInputStream("input.jpg");
+             FileOutputStream out = new FileOutputStream("output.jpg")) {
+
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+
+            System.out.println("File copied successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 2. Character Streams
+
+Used for handling text data (UTF-8/Unicode).
+Reader — for reading
+Writer — for writing
+
+✅ Example: Reading and writing a text file
+import java.io.*;
+
+public class FileCopyCharStream {
+    public static void main(String[] args) {
+        try (FileReader reader = new FileReader("input.txt");
+             FileWriter writer = new FileWriter("output.txt")) {
+
+            char[] buffer = new char[512];
+            int charsRead;
+
+            while ((charsRead = reader.read(buffer)) != -1) {
+                writer.write(buffer, 0, charsRead);
+            }
+
+            System.out.println("Text copied successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 3. Buffered Streams
+These wrap other streams to improve performance by buffering data.
+
+✅ Example: BufferedReader & BufferedWriter
+import java.io.*;
+
+public class BufferedReadWrite {
+    public static void main(String[] args) {
+        try (BufferedReader br = new BufferedReader(new FileReader("input.txt"));
+             BufferedWriter bw = new BufferedWriter(new FileWriter("output.txt"))) {
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                bw.write(line);
+                bw.newLine();
+            }
+
+            System.out.println("Buffered copy complete.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 4. Object Streams
+Used to read/write Java objects.
+
+✅ Example: Object Serialization
+import java.io.*;
+
+class Person implements Serializable {
+    String name;
+    int age;
+    
+    Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+
+public class ObjectStreamExample {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // Serialize object
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("person.ser"));
+        oos.writeObject(new Person("Alice", 30));
+        oos.close();
+
+        // Deserialize object
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("person.ser"));
+        Person p = (Person) ois.readObject();
+        System.out.println(p.name + ", " + p.age);
+        ois.close();
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+What is throughput?
+Throughput generally refers to the amount of something (like data, materials, or tasks) processed or transmitted through a system in a given amount of time. It’s a measure of efficiency or productivity.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📗 Part 2: Java NIO (New I/O)
+💡 What is Java NIO?
+Java NIO provides non-blocking, buffer-oriented, and channel-based I/O operations.
+
+🔹 1. Channels and Buffers
+Channel: A connection to an I/O entity (file, socket, etc.)
+Buffer: A container for data for reading/writing
+
+✅ Example: File copy using NIO
+import java.nio.file.*;
+import java.nio.channels.FileChannel;
+import java.io.*;
+
+public class NIOFileCopy {
+    public static void main(String[] args) throws IOException {
+        FileChannel source = new FileInputStream("input.txt").getChannel();
+        FileChannel dest = new FileOutputStream("output.txt").getChannel();
+
+        source.transferTo(0, source.size(), dest);
+
+        source.close();
+        dest.close();
+
+        System.out.println("NIO File copy completed.");
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 2. Paths and Files (java.nio.file.*)
+Modern replacement for File class.
+
+✅ Example: Reading all lines from file
+import java.nio.file.*;
+import java.io.IOException;
+import java.util.List;
+
+public class ReadFileNIO {
+    public static void main(String[] args) throws IOException {
+        Path path = Paths.get("input.txt");
+        List<String> lines = Files.readAllLines(path);
+
+        lines.forEach(System.out::println);
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 Summary Table
+| Feature      | Java I/O        | Java NIO                            |
+| ------------ | --------------- | ----------------------------------- |
+| Style        | Stream-oriented | Buffer-oriented                     |
+| Blocking     | Blocking        | Non-blocking                        |
+| Channels     | ❌ No          | ✅ Yes                              |
+| Selectors    | ❌ No          | ✅ Yes                              |
+| Performance  | OK              | Better for large data               |
+| Suitable for | Simple file I/O | High-performance I/O, file watching |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Blocking I/O (Traditional I/O)
+
+In blocking I/O, when a program makes a call to read or write data (e.g., from a file, socket, etc.), the call blocks—i.e., it waits—until the operation completes.
+
+Example:
+If you're reading from a socket:
+The thread waits until some data is received.
+While waiting, it does nothing else.
+
+This is simple to program but inefficient if the program is waiting for multiple resources or users.
+
+🧠 Real-world analogy: Imagine you're calling a friend and you just sit silently on the phone until they answer. You can't do anything else in that time.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Non-blocking I/O
+In non-blocking I/O, the read/write calls return immediately, even if they haven't completed the operation.
+
+🔹 Non-blocking I/O
+In non-blocking I/O, the read/write calls return immediately, even if they haven't completed the operation.
+
+You typically check (poll) whether data is ready.
+
+This allows a single thread to manage multiple I/O channels efficiently.
+
+🧠 Analogy: Instead of waiting for your friend to pick up, you call, then hang up and do other stuff. You try again later.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Key components of NIO:
+
+| Concept             | Description                                                          |
+| ------------------- | -------------------------------------------------------------------- |
+| `Buffer`            | Data is read into buffers (like arrays) rather than byte-by-byte.    |
+| `Channel`           | Like a stream, but supports reading/writing from/to buffers.         |
+| `Selector`          | Allows a single thread to monitor multiple channels (e.g., sockets). |
+| `Non-blocking Mode` | Channels can be configured to not block.                             |
+
+Example use case:
+A server using Selector can handle thousands of client connections on one thread, using non-blocking channels
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔄 Summary Table
+
+| Feature         | Blocking I/O            | Non-blocking I/O          | Java NIO                        |
+| --------------- | ----------------------- | ------------------------- | ------------------------------- |
+| Thread behavior | Waits for data          | Does not wait             | Supports both                   |
+| Performance     | Poor with many clients  | Efficient with many       | Highly scalable                 |
+| API Examples    | `InputStream`, `Reader` | Custom logic with polling | `Channel`, `Selector`, `Buffer` |
+| Use case        | Simple apps             | High-concurrency servers  | Modern Java servers, games      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📘 What is Serialization?
+Serialization is the process of converting a Java object into a byte stream, so that the object can be easily saved to a file or sent over a network.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔁 What is Deserialization?
+Deserialization is the reverse process — converting a byte stream back into a Java object.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ When 
+
+Saving object state (e.g., caching or local storage)
+Sending objects over network sockets
+Persisting objects to a file or database
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+📦 Requirements
+
+The class must implement java.io.Serializable interface.
+serialVersionUID is recommended for version control.
+transient keyword can be used to skip certain fields from serialization.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧊 Basic Example
+🎯 Step 1: Create a Serializable Class
+
+import java.io.Serializable;
+
+public class Person implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private String name;
+    private int age;
+
+    // Constructor
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    // Getters
+    public String getName() { return name; }
+    public int getAge() { return age; }
+
+    // toString for display
+    public String toString() {
+        return "Person{name='" + name + "', age=" + age + "}";
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🎯 Step 2: Serialize the Object
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+
+public class SerializeExample {
+    public static void main(String[] args) {
+        Person p = new Person("Alice", 30);
+
+        try (FileOutputStream fileOut = new FileOutputStream("person.ser");
+             ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
+             
+            out.writeObject(p);
+            System.out.println("Object has been serialized");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🎯 Step 3: Deserialize the Object
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+
+public class DeserializeExample {
+    public static void main(String[] args) {
+        try (FileInputStream fileIn = new FileInputStream("person.ser");
+             ObjectInputStream in = new ObjectInputStream(fileIn)) {
+             
+            Person p = (Person) in.readObject();
+            System.out.println("Deserialized Object: " + p);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔒 transient Keyword Example
+Mark a field with transient if you don't want to serialize it.
+
+public class User implements Serializable {
+    private String username;
+    private transient String password; // will not be serialized
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public String toString() {
+        return "User{username='" + username + "', password='" + password + "'}";
+    }
+}
+
+After deserialization, password will be null.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
