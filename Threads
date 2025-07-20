@@ -421,6 +421,174 @@ For I/O-bound tasks (it's CPU-optimized).
 When tasks are not easily divisible or parallelizable.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+A daemon thread is a background thread that runs continuously in the background but does not block the program from exiting. When all non-daemon (main) threads are done, the program will terminate, even if daemon threads are still running.
+
+Daemon threads are typically used for tasks like:
+
+Logging
+Monitoring
+Background I/O
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 Key Properties
+
+Default: Threads are non-daemon by default.
+A thread becomes a daemon by setting .daemon = True before calling .start().
+Daemon threads are killed automatically when the main program exits.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Simple Example: Without Daemon
+
+public class SimpleDaemonExample {
+    public static void main(String[] args) {
+        Thread daemonThread = new Thread(() -> {
+            while (true) {
+                System.out.println("Daemon thread running...");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    System.out.println("Daemon interrupted");
+                }
+            }
+        });
+
+        daemonThread.setDaemon(true); // Must be called before start()
+        daemonThread.start();
+
+        System.out.println("Main thread finished.");
+    }
+}
+
+🧠 Output:
+Daemon thread running...
+Daemon thread running...
+Main thread finished.
+
+👉 The daemon thread is killed automatically when the main thread exits.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 2. Without Daemon (Default Thread)
+public class NonDaemonExample {
+    public static void main(String[] args) {
+        Thread userThread = new Thread(() -> {
+            try {
+
+                Thread.sleep(5000);
+                System.out.println("User thread done.");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        userThread.start();
+
+        System.out.println("Main thread done.");
+    }
+}
+
+✅ Output:
+Main thread done.
+User thread done.
+👉 The JVM waits for the user thread to finish.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 3. Mid-Level Example: Background Logger
+
+public class LoggerDaemon {
+    public static void main(String[] args) {
+        Thread logger = new Thread(() -> {
+            while (true) {
+                System.out.println("[Logger] Writing logs...");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+        });
+
+        logger.setDaemon(true);
+        logger.start();
+
+        // Simulate main program
+        for (int i = 0; i < 3; i++) {
+            System.out.println("Main task " + i);
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("Main program done.");
+    }
+}
+
+🧠 Output:
+[Logger] Writing logs...
+Main task 0
+[Logger] Writing logs...
+Main task 1
+[Logger] Writing logs...
+Main task 2
+Main program done.
+
+
+✅ Once the main thread exits, the daemon thread is terminated.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 4. Advanced Example: Server Monitor + Request Handler
+public class ServerExample {
+    public static void main(String[] args) {
+        // Background daemon thread for monitoring
+        Thread monitor = new Thread(() -> {
+            while (true) {
+                System.out.println("[Monitor] Checking system status...");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+        });
+        monitor.setDaemon(true);
+        monitor.start();
+
+        // Foreground thread simulating a request
+        Thread requestHandler = new Thread(() -> {
+            System.out.println("[RequestHandler] Handling request...");
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("[RequestHandler] Request completed.");
+        });
+
+        requestHandler.start();
+
+        try {
+            requestHandler.join(); // Wait for request to complete
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Main program exiting...");
+    }
+}
+
+🧠 Output:
+[Monitor] Checking system status...
+[RequestHandler] Handling request...
+[Monitor] Checking system status...
+...
+[RequestHandler] Request completed.
+Main program exiting...
+
+✅ Daemon (monitor) runs in the background, but is stopped automatically after main and user threads finish.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚠️ Important Notes
+setDaemon(true) must be called before start(), otherwise you'll get IllegalThreadStateException.
+
+JVM exits only when all non-daemon threads have completed.
+
+Use daemon threads only when tasks don’t require guaranteed completion (e.g., logging, cleaning).
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
