@@ -1,0 +1,150 @@
+1. 🧩 Design Problem: Library Management System
+
+🔷 Problem Statement:
+A library wants to create a system to track:
+
+Books
+Members who borrow books
+Staff who manage borrowings
+Multiple copies of the same book
+Fines for late returns
+--------------------------------------------------------------------------------------------------------------------------------
+🔶 Step-by-Step ER Design
+
+✅ Step 1: Identify Entities
+Look for real-world objects you want to store data about.
+
+Entities:
+Book
+Copy (multiple copies of a book)
+Member
+Staff
+Borrowing
+Fine
+-------------------------------------------------------------------------------------------------------------------------------
+✅ Step 2: Identify Attributes
+For each entity, define its attributes, including primary keys.
+
+| Entity        | Attributes                                                                      |
+| ------------- | ------------------------------------------------------------------------------- |
+| **Book**      | ISBN (PK), Title, Author, Publisher                                             |
+| **Copy**      | CopyID (PK), Status (available/on-loan), ISBN (FK to Book)                      |
+| **Member**    | MemberID (PK), Name, Email, JoinDate                                            |
+| **Staff**     | StaffID (PK), Name, Role                                                        |
+| **Borrowing** | BorrowID (PK), BorrowDate, ReturnDate, CopyID (FK), MemberID (FK), StaffID (FK) |
+| **Fine**      | FineID (PK), Amount, DateIssued, BorrowID (FK)                                  |
+
+-------------------------------------------------------------------------------------------------------------------------------
+✅ Step 3: Identify Relationships
+Now define how entities are related.
+
+| Relationship | Entities Involved | Type                 | Notes                                  |
+| ------------ | ----------------- | -------------------- | -------------------------------------- |
+| **Borrows**  | Member → Copy     | M\:N (via Borrowing) | Borrowing is an **associative entity** |
+| **Issues**   | Staff → Borrowing | 1\:N                 | One staff can process many borrowings  |
+| **Has Fine** | Borrowing → Fine  | 1:1 or 1\:N          | Not all borrowings have fines          |
+-------------------------------------------------------------------------------------------------------------------------------
+✅ Step 4: Identify Cardinalities and Participation
+
+A Member can borrow many Copies
+A Copy can be borrowed multiple times, but only once at a time
+A Borrowing must involve a Member, Copy, and Staff
+A Fine may or may not be issued for a Borrowing → Optional Participation
+------------------------------------------------------------------------------------------------------------------------------
+✅ Step 5: ER Diagram (Text Representation)
+
+[Book] ——(1:N)—— [Copy]
+   |
+   | ISBN
+   |
+[Copy] ——(M:N via Borrowing)—— [Member]
+                |
+                | Borrowing(BorrowID, BorrowDate, ReturnDate)
+                |      |—— belongsTo ——[Staff]
+                |      |—— mayHave ——[Fine]
+----------------------------------------------------------------------------------------------------------------------------------
+✅ Step 6: Special Considerations
+
+Use composite keys or surrogate keys where needed.
+Handle multivalued attributes (e.g., Book with multiple authors) using a separate relationship if needed.
+Consider status of the copy (available, on-loan) as a dynamic attribute.
+-------------------------------------------------------------------------------------------------------------------------------
+📘 Relational Schema & SQL Design
+1. Book
+
+CREATE TABLE Book (
+  ISBN VARCHAR(20) PRIMARY KEY,
+  Title VARCHAR(255) NOT NULL,
+  Author VARCHAR(255),
+  Publisher VARCHAR(255),
+  PublicationYear INT
+);
+------------------------------------------------------------------------------------------------------------------------------------
+2. Copy
+Each physical copy of a book:
+
+CREATE TABLE Copy (
+  CopyID SERIAL PRIMARY KEY,
+  ISBN VARCHAR(20) NOT NULL,
+  Status VARCHAR(20) NOT NULL CHECK (Status IN ('Available', 'OnLoan')),
+  FOREIGN KEY (ISBN) REFERENCES Book(ISBN)
+);
+---------------------------------------------------------------------------------------------------------------------------------------
+3. Member
+
+CREATE TABLE Member (
+  MemberID SERIAL PRIMARY KEY,
+  FirstName VARCHAR(100),
+  LastName VARCHAR(100),
+  Email VARCHAR(100) UNIQUE,
+  JoinDate DATE
+);
+-----------------------------------------------------------------------------------------------------------------------------------------
+4. Staff
+
+CREATE TABLE Staff (
+  StaffID SERIAL PRIMARY KEY,
+  FirstName VARCHAR(100),
+  LastName VARCHAR(100),
+  Role VARCHAR(50)
+);
+--------------------------------------------------------------------------------------------------------------------------------------
+5. Borrowing (associative entity)
+Represents a member borrowing a specific copy. Includes who issued it, dates.
+
+CREATE TABLE Borrowing (
+  BorrowID SERIAL PRIMARY KEY,
+  MemberID INT NOT NULL,
+  CopyID INT NOT NULL,
+  StaffID INT NOT NULL,
+  BorrowDate DATE NOT NULL,
+  ReturnDate DATE,
+  FOREIGN KEY (MemberID) REFERENCES Member(MemberID),
+  FOREIGN KEY (CopyID) REFERENCES Copy(CopyID),
+  FOREIGN KEY (StaffID) REFERENCES Staff(StaffID)
+);
+--------------------------------------------------------------------------------------------------------------------------------------------
+6. Fine
+Optional fines associated with a borrowing:
+
+CREATE TABLE Fine (
+  FineID SERIAL PRIMARY KEY,
+  BorrowID INT NOT NULL,
+  Amount DECIMAL(10,2) NOT NULL,
+  DateIssued DATE NOT NULL,
+  Paid BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (BorrowID) REFERENCES Borrowing(BorrowID)
+);
+-------------------------------------------------------------------------------------------------------------------------------------------
+🧭 Mapping ER to Relational
+
+| ER Component            | Table Name | Primary Key | Foreign Keys              | Notes                       |
+| ----------------------- | ---------- | ----------- | ------------------------- | --------------------------- |
+| Book                    | Book       | ISBN        | —                         | Title-level information     |
+| Copy (multiple copies)  | Copy       | CopyID      | (ISBN → Book)             | Tracks physical units       |
+| Member                  | Member     | MemberID    | —                         | Library patrons             |
+| Staff                   | Staff      | StaffID     | —                         | Users managing transactions |
+| Borrowing (associative) | Borrowing  | BorrowID    | MemberID, CopyID, StaffID | Borrowing activity & dates  |
+| Fine                    | Fine       | FineID      | BorrowID                  | Optional financial penalty  |
+--------------------------------------------------------------------------------------------------------------------------------------
+
