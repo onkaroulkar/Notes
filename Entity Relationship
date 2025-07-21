@@ -1,0 +1,194 @@
+✅ PART 1: What Is an Entity Relationship (ER) Model?
+
+The ER model is a way to design a database at a high level by:
+
+Identifying entities (e.g., Customer, Product)
+Defining attributes (e.g., Name, Email)
+Describing relationships (e.g., Customer buys Product)
+It’s usually visualized with an ER diagram, and then implemented using SQL.
+
+1. Entity
+An entity is a thing or object in the real world that is distinguishable from other objects.
+
+Types:
+Strong Entity: Can exist independently.
+
+Weak Entity: Depends on another entity (no primary key on its own).
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Attributes
+
+Properties of an entity.
+Types:
+Simple (Atomic): Cannot be divided (e.g., Age, Name)
+Composite: Made up of multiple parts (e.g., Address = Street, City)
+Derived: Can be calculated (e.g., Age from DOB)
+Multivalued: Can have multiple values (e.g., Phone Numbers)
+
+✅ Example:
+Student
+ - StudentID (simple)
+ - Name (composite → FirstName, LastName)
+ - Age (derived from DOB)
+ - PhoneNumbers (multivalued)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ PART 2: Basic Concepts
+
+| Concept      | Description                             | Example                    |
+| ------------ | --------------------------------------- | -------------------------- |
+| Entity       | A real-world object                     | `Student`, `Course`        |
+| Attribute    | Property of an entity                   | `Name`, `Age`, `CourseID`  |
+| Relationship | Association between entities            | `Enrolls`                  |
+| Primary Key  | Uniquely identifies each record         | `StudentID`                |
+| Foreign Key  | Links to a primary key in another table | `CourseID` in `Enrollment` |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🟦 WEAK ENTITIES & IDENTIFYING RELATIONSHIPS
+
+A weak entity cannot be uniquely identified without a related strong entity. It uses a foreign key from the strong entity.
+
+✅ Example:
+
+Invoice → Strong
+PaymentInstallment → Weak
+Relationship: Invoice has PaymentInstallment
+Identifying attribute: PaymentNo (along with InvoiceID)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🟪 GENERALIZATION, SPECIALIZATION, AND INHERITANCE
+
+1. Generalization
+Combining two or more entities into a general (super) entity.
+✅ Example:
+Doctor and Nurse ⇒ generalized as MedicalStaff
+
+2. Specialization
+Breaking an entity into more specific sub-entities.
+✅ Example:
+Employee ⇒ Specialized into Engineer, Manager
+
+3. Inheritance
+Sub-entities inherit attributes of the super-entity.
+✅ Example:
+Employee has Name, ID
+Manager (inherits Name, ID + adds Department)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🟥 AGGREGATION (RELATIONSHIP BETWEEN RELATIONSHIPS)
+
+Used when a relationship needs to be treated as an entity.
+✅ Example:
+Employee works on Project
+Each work is supervised by a Manager
+So, "works_on" is aggregated as an entity, related to Manager.
+
+Employee --- works_on --- Project
+                 |
+                 |
+              Supervisor (Manager)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🟧 OPTIONALITY & PARTICIPATION CONSTRAINTS
+
+Total vs Partial Participation
+Total: Every entity in A must participate in a relationship (denoted by double lines).
+Partial: Some entities in A may participate (single line).
+
+✅ Example:
+Every Student must enroll in at least one Course → Total Participation
+Not all Professors teach courses → Partial Participation
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ SQL Table Relationships Overview
+There are four main types of relationships between tables in SQL:
+
+| Relationship Type | Description                                          | Example                            |
+| ----------------- | ---------------------------------------------------- | ---------------------------------- |
+| One-to-One        | One row in Table A ↔ one row in Table B              | Person ↔ Passport                  |
+| One-to-Many       | One row in Table A ↔ many rows in Table B            | Department → Employees             |
+| Many-to-One       | Many rows in Table A ↔ one row in Table B            | Employees → Department             |
+| Many-to-Many      | Many rows in A ↔ many rows in B (via junction table) | Students ↔ Courses                 |
+| Self-Referencing  | A table references itself                            | Employees (who report to managers) |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1️⃣ One-to-One Relationship
+Example: Each Person has one Passport
+
+Tables and SQL:
+CREATE TABLE Person (
+    PersonID INT PRIMARY KEY,
+    Name VARCHAR(100)
+);
+
+CREATE TABLE Passport (
+    PassportID INT PRIMARY KEY,
+    PersonID INT UNIQUE,
+    PassportNumber VARCHAR(50),
+    FOREIGN KEY (PersonID) REFERENCES Person(PersonID)
+);
+
+📌 UNIQUE ensures one-to-one: one passport per person.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2️⃣ One-to-Many Relationship
+Example: A Department has many Employees
+
+Tables and SQL:
+CREATE TABLE Department (
+    DeptID INT PRIMARY KEY,
+    DeptName VARCHAR(100)
+);
+
+CREATE TABLE Employee (
+    EmpID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    DeptID INT,
+    FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+);
+
+📌 Each employee belongs to one department, but a department has many employees.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3️⃣ Many-to-One Relationship
+
+This is just One-to-Many in reverse.
+Example: Many Employees work in one Company
+
+Tables and SQL:
+CREATE TABLE Company (
+    CompanyID INT PRIMARY KEY,
+    Name VARCHAR(100)
+);
+
+CREATE TABLE Employee (
+    EmpID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    CompanyID INT,
+    FOREIGN KEY (CompanyID) REFERENCES Company(CompanyID)
+);
+
+📌 Same structure as one-to-many; perspective differs.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3️⃣ Many-to-Many Relationship
+
+A student can enroll in many courses.
+A course can have many students.
+
+Tables and SQL:
+-- Students Table
+CREATE TABLE Students (
+    student_id INT PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+-- Courses Table
+CREATE TABLE Courses (
+    course_id INT PRIMARY KEY,
+    title VARCHAR(100)
+);
+
+-- Enrollments Table (Join Table)
+CREATE TABLE Enrollments (
+    student_id INT,
+    course_id INT,
+    PRIMARY KEY (student_id, course_id),
+    FOREIGN KEY (student_id) REFERENCES Students(student_id),
+    FOREIGN KEY (course_id) REFERENCES Courses(course_id)
+);
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Note: Study the ER diagram design problem.
+
+
