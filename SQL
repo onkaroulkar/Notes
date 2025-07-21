@@ -1,0 +1,132 @@
+🔹 1. DDL (Data Definition Language)
+Used to define and modify the structure of database objects like tables, schemas, etc.
+
+Key Commands: CREATE, ALTER, DROP, TRUNCATE
+
+✅ Example 1: CREATE
+
+CREATE TABLE students (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    age INT
+);
+
+Creates a new table students.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 2: ALTER
+
+ALTER TABLE students ADD email VARCHAR(100);
+Adds a new column to the students table.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 3: DROP
+
+DROP TABLE students;
+Deletes the students table and all its data permanently.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 4: TRUNCATE
+
+TRUNCATE TABLE students;
+Deletes all data from the students table but keeps its structure.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 2. DML (Data Manipulation Language)
+Used for manipulating data in the database.
+Key Commands: INSERT, UPDATE, DELETE
+
+✅ Example 1: INSERT
+INSERT INTO students (id, name, age)
+VALUES (1, 'Alice', 20);
+Adds a new row to the students table.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 2: UPDATE
+UPDATE students
+SET age = 21
+WHERE name = 'Alice';
+
+Updates the age of Alice to 21.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 3: DELETE
+DELETE FROM students
+WHERE id = 1;
+Deletes the row where id = 1.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 3. DQL (Data Query Language)
+Used to fetch data from the database.
+
+Key Command: SELECT
+✅ Example 1: Basic SELECT
+SELECT * FROM students;
+Fetches all columns from the students table.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 2: SELECT with WHERE
+SELECT name, age FROM students
+WHERE age > 18;
+Returns names and ages of students older than 18.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 3: SELECT with JOIN
+SELECT s.name, c.course_name
+FROM students s
+JOIN enrollments e ON s.id = e.student_id
+JOIN courses c ON e.course_id = c.id;
+Joins multiple tables to show student names and their courses.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 4. TCL (Transaction Control Language)
+Used to manage transactions.
+Key Commands: COMMIT, ROLLBACK, SAVEPOINT
+
+✅ Example: Transaction Control
+BEGIN;
+
+INSERT INTO students (id, name, age) VALUES (2, 'Bob', 19);
+
+SAVEPOINT before_update;
+
+UPDATE students SET age = 20 WHERE id = 2;
+
+-- If something goes wrong
+ROLLBACK TO before_update;
+
+COMMIT;
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 5. DCL (Data Control Language)
+Used to control access to data.
+
+Key Commands: GRANT, REVOKE
+✅ Example 1: GRANT
+GRANT SELECT, INSERT ON students TO user123;
+Gives user123 permission to SELECT and INSERT on students.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example 2: REVOKE
+REVOKE INSERT ON students FROM user123;
+Takes away INSERT permission from user123.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Summary Table
+
+| Type | Name                     | Commands                          | Purpose                      |
+| ---- | ------------------------ | --------------------------------- | ---------------------------- |
+| DDL  | Data Definition Language | `CREATE`, `ALTER`, `DROP`         | Define structure of DB       |
+| DML  | Data Manipulation        | `INSERT`, `UPDATE`, `DELETE`      | Modify data                  |
+| DQL  | Data Query               | `SELECT`                          | Retrieve data                |
+| TCL  | Transaction Control      | `COMMIT`, `ROLLBACK`, `SAVEPOINT` | Control transaction behavior |
+| DCL  | Data Control             | `GRANT`, `REVOKE`                 | Manage access/permissions    |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
