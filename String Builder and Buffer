@@ -1,0 +1,67 @@
+🔤 Background: Why not just use String?
+In Java, String objects are immutable — once created, they cannot be changed. For example:
+
+String s = "Hello";
+s = s + " World";  // This actually creates a new String object!
+
+If you're doing lots of modifications (e.g., appending in loops), this is inefficient. That's where StringBuffer and StringBuilder come in.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧱 1. StringBuffer
+
+✅ Key Features:
+
+Mutable: You can modify the string without creating a new object.
+Thread-safe: All methods are synchronized, making it safe for use in multi-threaded environments.
+Slower than StringBuilder due to synchronization.
+
+🛠️ Common Methods:
+StringBuffer sb = new StringBuffer("Hello");
+
+// Append
+sb.append(" World");     // "Hello World"
+
+// Insert
+sb.insert(5, ",");       // "Hello, World"
+
+// Replace
+sb.replace(6, 11, "Java"); // "Hello,Java"
+
+// Delete
+sb.delete(5, 6);         // "HelloJava"
+
+// Reverse
+sb.reverse();            // "avaJolleH"
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚡ 2. StringBuilder
+
+✅ Key Features:
+Also mutable
+
+Not thread-safe, so faster in single-threaded environments
+Introduced in Java 1.5 to improve performance over StringBuffer
+
+🔁 Methods:
+Same as StringBuffer:
+StringBuilder sb = new StringBuilder("Hi");
+
+sb.append(" there");        // "Hi there"
+sb.insert(2, ",");          // "Hi, there"
+sb.replace(0, 2, "Hey");    // "Hey, there"
+sb.reverse();               // "ereht ,yeH"
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🤔 When to use what?
+
+Use String if you don’t need to modify the text.
+Use StringBuffer if multiple threads access and modify the string.
+Use StringBuilder for most other cases (e.g., building strings in loops).
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔍 Summary Table:
+
+| Feature     | `String`            | `StringBuffer`      | `StringBuilder`                      |
+| ----------- | ------------------- | ------------------- | ------------------------------------ |
+| Mutable     | ❌ No                | ✅ Yes               | ✅ Yes                                |
+| Thread-safe | ✅ Yes               | ✅ Yes               | ❌ No                                 |
+| Performance | ❌ Slow              | ⚠️ Slower (sync)    | ✅ Fast (no sync)                     |
+| Use Case    | Simple, few changes | Multi-threaded apps | Single-threaded, performance-focused |
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
