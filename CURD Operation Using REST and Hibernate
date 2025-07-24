@@ -1,0 +1,255 @@
+*Some basic concepts:
+What is the database dialect?
+Different database systems (like MySQL, PostgreSQL, Oracle, SQL Server, SQLite, etc.) implement SQL with slight variations — these differences are called dialects. These variations can affect syntax, functions, keywords, or behavior.
+
+*What are the different primary key generation strategies in Hibernate?
+IDENTITY - Auto generate the primary key in the table.
+AUTO - JAP select the best strategy as per database dialect.
+SEQUENCE - Uses database sequence object to generate primary key.
+TABLE - Uses separate database table to simulate sequence generation.
+
+*What is cascading in Hibernate?
+Cascading means that certain operations performed on the parent entity are automatically propagated to the associated child entities. This helps manage the lifecycle of related entities more conveniently.
+
+What does CascadeType.ALL include?
+CascadeType.ALL is a shorthand for including all cascade operations:
+PERSIST — When the parent is saved, the child is also saved.
+MERGE — When the parent is merged, the child is also merged.
+REMOVE — When the parent is deleted, the child is also deleted.
+REFRESH — When the parent is refreshed, the child is refreshed.
+DETACH — When the parent is detached from the persistence context, the child is also detached.
+
+Example:
+@Entity
+public class Parent {
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent")
+    private List<Child> children;
+}
+
+Here, any operation you do on a Parent entity (persist, merge, remove, etc.) will automatically be cascaded to its children.
+
+******************************************************* CURD Operation Using REST API and Hibernate *******************************************************************
+📦 Updated Project Structure
+
+hibernate-jpa-demo/
+├── src/
+│   └── main/
+│       ├── java/
+│       │   └── com/example/
+│       │       ├── model/
+│       │       │   ├── User.java
+│       │       │   └── Order.java
+│       │       ├── repository/
+│       │       │   ├── UserRepository.java
+│       │       │   └── OrderRepository.java
+│       │       ├── controller/
+│       │       │   ├── UserController.java
+│       │       │   └── OrderController.java
+│       │       └── Application.java
+│       └── resources/
+│           └── application.properties
+└── pom.xml
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 1. pom.xml (include Spring Boot & Web)
+
+<dependencies>
+    <!-- Spring Boot + JPA -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+        <version>3.1.2</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+        <version>3.1.2</version>
+    </dependency>
+    <!-- H2 -->
+    <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+    </dependency>
+</dependencies>
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚙️ 2. application.properties
+
+spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+👤 3. User.java (with relationship)
+
+package com.example.model;
+
+import jakarta.persistence.*;
+import java.util.List;
+
+@Entity
+@Table(name = "users")
+public class User {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String email;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Order> orders;
+
+    // constructors, getters, setters
+}
+
+
+🛒 4. Order.java
+package com.example.model;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "orders")
+public class Order {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String itemName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    // constructors, getters, setters
+}
+---------------------------------------------------------------------------------------------
+📚 5. Repositories (Spring Data JPA)
+
+package com.example.repository;
+
+import com.example.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, Long> {}
+-------------------------------------------------------------------------------------------------
+OrderRepository.java:
+package com.example.repository;
+
+import com.example.model.Order;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OrderRepository extends JpaRepository<Order, Long> {}
+-----------------------------------------------------------------------------------------------------
+🧩 6. Controllers (REST Endpoints)
+
+UserController.java
+
+package com.example.controller;
+
+import com.example.model.User;
+import com.example.repository.UserRepository;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@RequestMapping("/users")
+public class UserController {
+    private final UserRepository repo;
+
+    public UserController(UserRepository repo) {
+        this.repo = repo;
+    }
+
+    @GetMapping
+    public List<User> all() {
+        return repo.findAll();
+    }
+
+    @PostMapping
+    public User create(@RequestBody User user) {
+        return repo.save(user);
+    }
+
+    @GetMapping("/{id}")
+    public User get(@PathVariable Long id) {
+        return repo.findById(id).orElseThrow();
+    }
+
+    @PutMapping("/{id}")
+    public User update(@PathVariable Long id, @RequestBody User u) {
+        return repo.findById(id).map(user -> {
+            user.setName(u.getName());
+            user.setEmail(u.getEmail());
+            return repo.save(user);
+        }).orElseThrow();
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        repo.deleteById(id);
+    }
+}
+----------------------------------------------------------------------------------------------
+OrderController.java
+
+package com.example.controller;
+
+import com.example.model.Order;
+import com.example.model.User;
+import com.example.repository.OrderRepository;
+import com.example.repository.UserRepository;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+    private final OrderRepository orderRepo;
+    private final UserRepository userRepo;
+
+    public OrderController(OrderRepository orderRepo, UserRepository userRepo) {
+        this.orderRepo = orderRepo;
+        this.userRepo = userRepo;
+    }
+
+    @GetMapping
+    public List<Order> all() {
+        return orderRepo.findAll();
+    }
+
+    @PostMapping("/user/{userId}")
+    public Order create(@PathVariable Long userId, @RequestBody Order order) {
+        User user = userRepo.findById(userId).orElseThrow();
+        order.setUser(user);
+        return orderRepo.save(order);
+    }
+
+    @GetMapping("/{id}")
+    public Order get(@PathVariable Long id) {
+        return orderRepo.findById(id).orElseThrow();
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        orderRepo.deleteById(id);
+    }
+}
+----------------------------------------------------------------------------------------------------------
+🚀 7. Application.java (Main Class)
+
+package com.example;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class Application {
+   public static void main(String[] args) {
+      SpringApplication.run(Application.class, args);
+   }
+}
+---------------------------------------------------------------------------------------------
+	
