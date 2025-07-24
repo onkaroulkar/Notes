@@ -1,0 +1,113 @@
+🔷 What is the CAP Theorem?
+CAP stands for:
+
+Consistency
+Availability
+Partition Tolerance
+
+The CAP theorem states that in the presence of a network partition, a distributed system can guarantee only two of the three properties.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Definitions
+1. Consistency (C)
+Every node sees the same data at the same time.
+If a write happens, all reads after that must reflect that change.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Availability (A)
+Every request (read/write) receives a non-error response – even if it’s not the most recent.
+✅ Think: "The system always responds."
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Partition Tolerance (P)
+The system continues operating even if some nodes can’t communicate (network failure).
+✅ Think: "Survive network issues."
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚠ The Key Point:
+🚫 You cannot have all three (C, A, P) at the same time if a network partition occurs.
+So, during a partition, you must choose between:
+
+Consistency + Partition Tolerance (CP)
+Availability + Partition Tolerance (AP)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 Visual Analogy
+Imagine a distributed system as a group chat app:
+C: Everyone sees the same message at the same time.
+A: Everyone can send/receive messages without errors.
+P: If someone temporarily loses internet, the group chat keeps running.
+Now suppose a network issue splits users into two groups:
+You can stop messaging (availability) to ensure messages are consistent.
+Or you can let users keep chatting (availability) but risk inconsistencies.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 Scenarios & Examples
+✅ 1. CP (Consistency + Partition Tolerance)
+The system sacrifices availability.
+During a partition, it refuses requests that can’t guarantee consistency.
+Examples:
+MongoDB (with strong consistency mode)
+HBase
+Zookeeper
+Use Case:
+Banking systems — better to reject a transaction than risk inconsistency.
+
+Scenario:
+Two people try to withdraw $50 from a $60 account at the same time on different servers.
+The system blocks one request until partition heals to avoid overdrawing.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 2. AP (Availability + Partition Tolerance)
+The system sacrifices consistency.
+Keeps serving requests, even if some nodes don’t have the latest data.
+Examples:
+Cassandra
+DynamoDB
+Couchbase
+Use Case:
+Social media timelines, shopping carts — better to be available, minor inconsistencies can be resolved later.
+
+Scenario:
+You post a comment from your phone (offline), and your friend doesn't see it immediately.
+Once your connection restores, the data eventually syncs (eventual consistency).
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ 3. CA (Consistency + Availability) ❌ Not Possible with Partition
+This works only when there’s no network partition.
+Not feasible in real distributed systems that must tolerate partitions.
+Examples:
+Single-node relational databases like PostgreSQL, SQLite (not distributed).
+In-memory caches within a single machine.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 Summary Table
+
+| Property Pair | What it Guarantees                | Sacrificed                                                 | Use Case               |
+| ------------- | --------------------------------- | ---------------------------------------------------------- | ---------------------- |
+| **CP**        | Correct & Partition-safe          | Availability                                               | Financial transactions |
+| **AP**        | Always available & Partition-safe | Consistency                                                | Social apps, shopping  |
+| **CA**        | Strong & Fast                     | Partition tolerance (not realistic in distributed systems) | Centralized databases  |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔶 Deeper Example: Shopping Cart in a Distributed Store
+Imagine an e-commerce platform running across data centers.
+
+Scenario:
+You add items to your cart while traveling (e.g., airplane Wi-Fi).
+The server in region A can’t talk to region B.
+
+AP behavior:
+Your cart is updated in region A.
+Region B shows old cart.
+When network is restored, data eventually syncs
+
+CP behavior:
+Your cart request is rejected until region A can talk to region B.
+No chance of inconsistency.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 Real-World Technologies
+
+| Technology                       | CAP Tradeoff              |
+| -------------------------------- | ------------------------- |
+| **MongoDB (default)**            | AP (eventual consistency) |
+| **MongoDB (with write concern)** | CP                        |
+| **Cassandra**                    | AP                        |
+| **HBase**                        | CP                        |
+| **Redis (clustered)**            | AP                        |
+| **Zookeeper**                    | CP                        |
+| **Etcd**                         | CP                        |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
