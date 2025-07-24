@@ -1,0 +1,99 @@
+ACID is an acronym for Atomicity, Consistency, Isolation, and Durability. These are the key properties that guarantee reliable processing of database transactions.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 1. Atomicity
+
+Definition:
+A transaction is all-or-nothing. If any part of the transaction fails, the entire transaction fails, and the database is left unchanged.
+
+Simple Example:
+Suppose you are transferring $100 from Account A to Account B:
+Subtract $100 from Account A
+Add $100 to Account B
+
+Transaction steps:
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE name = 'A';
+UPDATE accounts SET balance = balance + 100 WHERE name = 'B';
+COMMIT;
+
+If the second update fails (e.g., power failure), the first one is rolled back so no money is lost.
+Real-life analogy:
+Think of it like sending a message. It either reaches the recipient completely or not at all, not halfway.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 2. Consistency
+Definition:
+A transaction must leave the database in a valid state. It should not violate database rules (e.g., constraints, data types, triggers).
+
+Simple Example:
+A bank account should never have a negative balance. A transaction subtracting more than the current balance should be rejected.
+CHECK (balance >= 0)
+
+If a transaction results in a balance of -$50, consistency is violated, and the DBMS will reject the operation.
+
+More Complex Example:
+Suppose you have foreign key constraints between two tables:
+
+CREATE TABLE orders (
+  id INT PRIMARY KEY,
+  customer_id INT,
+  FOREIGN KEY (customer_id) REFERENCES customers(id)
+);
+
+Inserting an order for a non-existent customer would break consistency.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 3. Isolation
+Definition:
+Transactions should not interfere with each other. Intermediate results are invisible to other transactions.
+
+Simple Example:
+Two users are transferring money at the same time:
+
+User A: $100 from Account X to Y
+
+User B: $200 from Account X to Z
+
+If the database allows both to subtract from the balance at the same time, it might result in a wrong final balance.
+
+Isolation Levels (SQL standard):
+
+Read Uncommitted – transactions may see uncommitted data (dirty reads)
+
+Read Committed – cannot read uncommitted data
+
+Repeatable Read – same query always sees the same data
+
+Serializable – transactions run as if they were sequential
+
+Complex Example (Lost Update):
+Two users read a product's stock (10 units), both try to buy 1. If isolation is weak, both might succeed, reducing stock to 9 instead of 8.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 4. Durability
+Definition:
+Once a transaction is committed, it remains in the system even if there's a crash, power failure, etc.
+
+Simple Example:
+You transfer $100, and the app says “Transfer successful.” Even if the server crashes, the transfer is not lost.
+
+How? Most databases use:
+
+Write-ahead logs (WAL)
+
+Data replication
+
+File system flushing (fsync)
+
+Complex Example:
+In distributed systems, transactions use 2-phase commit or Raft consensus to ensure all nodes agree to commit before finalizing the change.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Summary Table
+
+| ACID Property   | Meaning                              | Real-World Analogy                                       |
+| --------------- | ------------------------------------ | -------------------------------------------------------- |
+| **Atomicity**   | All-or-nothing                       | Sending a letter – it either arrives whole or not at all |
+| **Consistency** | Maintains valid data                 | Bank rules – no negative balances                        |
+| **Isolation**   | Transactions don't affect each other | One person editing a doc at a time                       |
+| **Durability**  | Changes persist even after crash     | Data saved to disk stays safe                            |
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
