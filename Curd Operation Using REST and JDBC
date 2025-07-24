@@ -1,0 +1,225 @@
+************************************************* CURD operations using REST API and JDBC*********************************************
+Java (with Spring Boot or plain Servlet-based Java)
+JDBC for database interaction
+REST API (with Spring Boot for simplicity)
+MySQL as an example database
+----------------------------------------------------------------------------------------------------------------------------------------
+🔧 Tools Setup
+
+Database: MySQL (you can use any relational DB)
+IDE: IntelliJ IDEA / Eclipse
+Java version: 11+
+Spring Boot (preferred): Makes it easier to build REST APIs
+Dependencies:
+spring-boot-starter-web
+spring-boot-starter-jdbc
+mysql-connector-java
+-------------------------------------------------------------------------------------------------------------------------------------------
+🗃️ Step-by-Step CRUD Using REST API with JDBC
+
+📁 1. Create the Database Table
+
+CREATE DATABASE demo;
+
+USE demo;
+
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    email VARCHAR(50)
+);
+-----------------------------------------------------------------------------------------------------------------------------------------------
+📦 2. Spring Boot Project Structure
+
+src/
+├── main/
+│   ├── java/
+│   │   └── com.example.demo/
+│   │       ├── controller/
+│   │       │   └── UserController.java
+│   │       ├── dao/
+│   │       │   └── UserDAO.java
+│   │       ├── model/
+│   │       │   └── User.java
+│   │       └── DemoApplication.java
+│   └── resources/
+│       └── application.properties
+---------------------------------------------------------------------------------------------------------------------------------------------------
+🧩 3. application.properties
+
+spring.datasource.url=jdbc:mysql://localhost:3306/demo
+spring.datasource.username=root
+spring.datasource.password=your_password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+---------------------------------------------------------------------------------------------------------------------------------------------------
+🧍 4. User Model
+
+package com.example.demo.model;
+
+public class User {
+    private int id;
+    private String name;
+    private String email;
+
+    // Getters and Setters
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------
+🛠️ 5. DAO Layer (JDBC Code)
+
+package com.example.demo.dao;
+
+import com.example.demo.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+@Repository
+public class UserDAO {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    private User mapRow(ResultSet rs, int rowNum) throws SQLException {
+        User u = new User();
+        u.setId(rs.getInt("id"));
+        u.setName(rs.getString("name"));
+        u.setEmail(rs.getString("email"));
+        return u;
+    }
+
+    // Create
+    public int save(User user) {
+        return jdbcTemplate.update("INSERT INTO users(name, email) VALUES (?, ?)",
+                user.getName(), user.getEmail());
+    }
+
+    // Read
+    public List<User> findAll() {
+        return jdbcTemplate.query("SELECT * FROM users", this::mapRow);
+    }
+
+    public User findById(int id) {
+        return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", this::mapRow, id);
+    }
+
+    // Update
+    public int update(User user) {
+        return jdbcTemplate.update("UPDATE users SET name=?, email=? WHERE id=?",
+                user.getName(), user.getEmail(), user.getId());
+    }
+
+    // Delete
+    public int delete(int id) {
+        return jdbcTemplate.update("DELETE FROM users WHERE id=?", id);
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🌐 6. REST Controller
+
+package com.example.demo.controller;
+
+import com.example.demo.dao.UserDAO;
+import com.example.demo.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @Autowired
+    private UserDAO userDAO;
+
+    // Create
+    @PostMapping
+    public String createUser(@RequestBody User user) {
+        userDAO.save(user);
+        return "User created";
+    }
+
+    // Read all
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userDAO.findAll();
+    }
+
+    // Read by id
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable int id) {
+        return userDAO.findById(id);
+    }
+
+    // Update
+    @PutMapping("/{id}")
+    public String updateUser(@PathVariable int id, @RequestBody User user) {
+        user.setId(id);
+        userDAO.update(user);
+        return "User updated";
+    }
+
+    // Delete
+    @DeleteMapping("/{id}")
+    public String deleteUser(@PathVariable int id) {
+        userDAO.delete(id);
+        return "User deleted";
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🚀 7. Run the Application
+Use your IDE or run from termina
+mvn spring-boot:run
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧪 8. Test API (e.g., using Postman)
+
+POST /api/users – Create user
+GET /api/users – Get all users
+GET /api/users/{id} – Get user by ID
+PUT /api/users/{id} – Update user
+DELETE /api/users/{id} – Delete user
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
