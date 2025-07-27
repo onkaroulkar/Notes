@@ -1,0 +1,248 @@
+🧩 What is an Interface in Java?
+An interface in Java is a reference type, similar to a class, that can contain:
+
+Abstract methods (method signatures without bodies)
+Default methods (with a body)
+Static methods
+Constants (public static final variables)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+An interface defines a contract that classes can implement. It tells what a class must do, but not how to do it.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧱 Syntax of an Interface
+interface Animal {
+    void eat(); // abstract method
+}
+
+A class implements an interface using the implements keyword:
+class Dog implements Animal {
+    public void eat() {
+        System.out.println("Dog eats meat");
+    }
+}
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------🔹 Why Use Interfaces?
+Abstraction: Interfaces allow you to define what a class should do, not how.
+Multiple Inheritance: Java doesn't support multiple inheritance with classes, but interfaces allow it.
+Loose Coupling: Interfaces help in designing loosely coupled systems.
+Polymorphism: You can use interfaces to achieve runtime polymorphism.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Syntax of an Interface
+public interface Animal {
+    void eat(); // abstract method
+    void sleep();
+}
+
+Any class that implements this interface must provide implementations for all its methods:
+
+public class Dog implements Animal {
+    public void eat() {
+        System.out.println("Dog eats bones");
+    }
+
+    public void sleep() {
+        System.out.println("Dog sleeps in kennel");
+    }
+}
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Key Characteristics
+Feature	                                                       Description
+All methods are public and abstract by default	               Unless marked as default or static
+Variables are public, static, and final                        Constants only
+Cannot be instantiated	                                       You cannot create objects of an interface
+Can extend multiple interfaces	                               Unlike classes, interfaces can extend more than one interface
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Default and Static Methods (Java 8+)
+public interface Vehicle {
+    void start();
+
+    default void honk() {
+        System.out.println("Honking...");
+    }
+
+    static void service() {
+        System.out.println("Vehicle service");
+    }
+}
+Default methods allow interfaces to have method implementations.
+Static methods belong to the interface itself, not to instances.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Functional Interfaces (Java 8+)
+A functional interface has exactly one abstract method. It can have multiple default or static methods.
+@FunctionalInterface
+public interface Calculator {
+    int operate(int a, int b);
+}
+Used heavily in lambda expressions and streams.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Advanced Concepts
+1. Interface Inheritance
+interface A {
+    void methodA();
+}
+
+interface B extends A {
+    void methodB();
+}
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Multiple Interface Implementation
+interface Flyable {
+    void fly();
+}
+
+interface Swimmable {
+    void swim();
+}
+
+class Duck implements Flyable, Swimmable {
+    public void fly() { System.out.println("Duck flies"); }
+    public void swim() { System.out.println("Duck swims"); }
+}
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Marker Interfaces
+Interfaces with no methods. Used to mark a class for a specific purpose.
+
+Example: Serializable, Cloneable
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 Summary
+Interfaces define what a class should do.
+They support multiple inheritance.
+They are essential for abstraction, polymorphism, and loose coupling.
+Java 8+ added default and static methods.
+Java 8+ also introduced functional interfaces for lambda expressions.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+default methods and static methods are features introduced in Java 8 for interfaces. They allow you to provide implementations inside interfaces,
+which was previously not possible.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. Default Methods in Java
+A default method is a method in an interface that has a body (implementation). It is declared using the default keyword.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Why Are Default Methods Useful?
+- Allows adding new methods to interfaces without breaking existing implementations.
+- Helps in evolving APIs gracefully.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+interface Vehicle {
+    void speedUp(); // Abstract method (must be implemented in subclass)
+
+    default void showType() {
+        System.out.println("This is a vehicle");
+    }
+}
+
+class Car implements Vehicle {
+    @Override
+    public void speedUp() {
+        System.out.println("Car is speeding up!");
+    }
+}
+
+public class DefaultMethodExample {
+    public static void main(String[] args) {
+        Car car = new Car();
+        car.speedUp();   // Calls overridden method
+        car.showType();  // Calls default method from interface
+    }
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Key Points
+✔ Default methods allow interfaces to have implementations
+✔ Classes implementing the interface can override them
+✔ Default methods help in maintaining backward compatibility
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Static Methods in Java
+A static method in an interface is like a utility method that belongs to the interface itself, not to any instance.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Why Use Static Methods in Interfaces?
+- Allows utility methods related to the interface.
+- Prevents polluting helper methods inside implementing classes.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+interface MathUtils {
+    static int add(int a, int b) {
+        return a + b;
+    }
+}
+
+public class StaticMethodExample {
+    public static void main(String[] args) {
+        int sum = MathUtils.add(5, 10); // Calls static method directly from interface
+        System.out.println("Sum: " + sum);
+    }
+}
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Key Points
+✔ Static methods belong to the interface itself, not to objects
+✔ They are called directly using InterfaceName.methodName()
+✔ They cannot be overridden by implementing classes
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Multiple Inheritance with Default Methods
+Scenario: Two interfaces (A and B) have the same default method show(), and a class implements both.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+interface A {
+    default void show() {
+        System.out.println("Default method from Interface A");
+    }
+}
+
+interface B {
+    default void show() {
+        System.out.println("Default method from Interface B");
+    }
+}
+
+class C implements A, B {
+    @Override
+    public void show() {
+        System.out.println("Overridden show() method in Class C");
+    }
+}
+
+public class MultipleInheritanceExample {
+    public static void main(String[] args) {
+        C obj = new C();
+        obj.show(); // Calls overridden method
+    }
+}
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Key Points
+✔ If two interfaces have the same default method, the implementing class must override it
+✔ This prevents ambiguity in method resolution
+✔ Java forces the subclass to explicitly define its behavior
+
+Handling Ambiguity with super
+If you want to call a specific interface's method, use InterfaceName.super.methodName().
+Example: Resolving Method Conflict
+class C implements A, B {
+    @Override
+    public void show() {
+        A.super.show(); // Explicitly calling Interface A’s method
+        B.super.show(); // Explicitly calling Interface B’s method
+    }
+}
+
+
+Output
+Default method from Interface A
+Default method from Interface B
+
+
+
+Comparison: Multiple Inheritance in Java vs. Other Languages
+| Feature | Java Interfaces | C++ Multiple Inheritance | 
+| Method Conflict | Requires super.methodName() | Can use virtual functions | 
+| Supports Multiple Parent Classes? | Yes (Interfaces Only) | Yes (Classes) | 
+| Diamond Problem? | Avoids using interfaces | Uses virtual inheritance | 
+
+
+Java’s approach ensures clarity and avoids unintended behavior.
+Would you like to see how static methods interact with inheritance scenarios too? 🚀
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Handling Ambiguity with super
+If you want to call a specific interface's method, use InterfaceName.super.methodName().
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+class C implements A, B {
+    @Override
+    public void show() {
+        A.super.show(); // Explicitly calling Interface A’s method
+        B.super.show(); // Explicitly calling Interface B’s method
+    }
+}
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
