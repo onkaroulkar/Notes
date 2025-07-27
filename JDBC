@@ -1,0 +1,218 @@
+JDBC Steps in Detail
+
+Step 1: Import JDBC Packages
+
+You need to import the required JDBC classes and interfaces.
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Step 2: Load and Register the JDBC Driver
+
+Since JDBC 4.0, explicitly loading the driver class is often optional (it happens automatically when you call DriverManager.getConnection()), but sometimes it's necessary.
+
+Example for MySQL:
+try {
+    Class.forName("com.mysql.cj.jdbc.Driver");  // Load the MySQL JDBC driver
+} catch (ClassNotFoundException e) {
+    e.printStackTrace();
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Step 3: Establish a Connection to the Database
+
+Use DriverManager.getConnection() with the database URL, username, and password.
+String url = "jdbc:mysql://localhost:3306/mydatabase"; // Replace with your DB URL
+String user = "root";   // DB username
+String password = "password"; // DB password
+
+Connection conn = null;
+
+try {
+    conn = DriverManager.getConnection(url, user, password);
+    System.out.println("Connection established successfully!");
+} catch (SQLException e) {
+    e.printStackTrace();
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Step 4: Create a Statement or PreparedStatement
+
+To execute SQL queries, create a Statement or PreparedStatement object from the Connection.
+Statement is used for static SQL queries.
+
+PreparedStatement is used for parameterized queries (recommended to prevent SQL injection).
+Statement stmt = conn.createStatement();
+
+OR (better for queries with parameters)
+String sql = "SELECT * FROM employees WHERE department = ?";
+PreparedStatement pstmt = conn.prepareStatement(sql);
+pstmt.setString(1, "Sales");
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Step 5: Execute SQL Queries
+
+Execute the SQL query using the Statement or PreparedStatement:
+For SELECT queries, use executeQuery().
+For INSERT/UPDATE/DELETE queries, use executeUpdate().
+
+Example:
+// For SELECT
+ResultSet rs = stmt.executeQuery("SELECT * FROM employees");
+
+// For UPDATE/INSERT/DELETE
+int rowsAffected = stmt.executeUpdate("UPDATE employees SET salary = salary * 1.1 WHERE department = 'Sales'");
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Step 6: Process the ResultSet (for SELECT queries)
+
+Retrieve data from the ResultSet by iterating over it.
+while (rs.next()) {
+    int id = rs.getInt("employee_id");
+    String name = rs.getString("name");
+    double salary = rs.getDouble("salary");
+    
+    System.out.println("ID: " + id + ", Name: " + name + ", Salary: " + salary);
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Step 7: Close the Resources
+
+Always close the ResultSet, Statement, and Connection objects to release database resources and avoid memory leaks.
+try {
+    if (rs != null) rs.close();
+    if (stmt != null) stmt.close();
+    if (conn != null) conn.close();
+} catch (SQLException e) {
+    e.printStackTrace();
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Full Example Putting It All Together:
+
+import java.sql.*;
+
+public class JdbcExample {
+
+    public static void main(String[] args) {
+
+        String url = "jdbc:mysql://localhost:3306/mydatabase";
+        String user = "root";
+        String password = "password";
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            // Step 2: Load JDBC driver (optional for recent JDBC versions)
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Step 3: Establish connection
+            conn = DriverManager.getConnection(url, user, password);
+            System.out.println("Connected to database!");
+
+            // Step 4: Create statement
+            stmt = conn.createStatement();
+
+            // Step 5: Execute query
+            rs = stmt.executeQuery("SELECT * FROM employees");
+
+            // Step 6: Process results
+            while (rs.next()) {
+                int id = rs.getInt("employee_id");
+                String name = rs.getString("name");
+                double salary = rs.getDouble("salary");
+                System.out.println("ID: " + id + ", Name: " + name + ", Salary: " + salary);
+            }
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("JDBC Driver not found.");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Database error occurred.");
+            e.printStackTrace();
+        } finally {
+            // Step 7: Close resources
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Additional Tips:
+Use PreparedStatement over Statement for better performance and security.
+Handle exceptions properly.
+Use connection pooling in real applications for better scalability.
+Always close connections in a finally block or use try-with-resources (Java 7+) to automatically close resources.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Using PreparedStatement in JDBC
+
+🔹 Why use PreparedStatement?
+Prevents SQL Injection attacks.
+Allows parameterized queries.
+More efficient for repeated execution (query is precompiled).
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 Example: Using PreparedStatement for INSERT
+
+String insertSQL = "INSERT INTO employees (name, department, salary) VALUES (?, ?, ?)";
+PreparedStatement pstmt = conn.prepareStatement(insertSQL);
+
+pstmt.setString(1, "John Doe");
+pstmt.setString(2, "Marketing");
+pstmt.setDouble(3, 60000);
+
+int rowsInserted = pstmt.executeUpdate();
+System.out.println(rowsInserted + " row(s) inserted.");
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔸 Data Type Mapping (setXXX methods)
+
+| SQL Type | Java Method    |
+| -------- | -------------- |
+| VARCHAR  | `setString()`  |
+| INT      | `setInt()`     |
+| DOUBLE   | `setDouble()`  |
+| DATE     | `setDate()`    |
+| BOOLEAN  | `setBoolean()` |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Handling Transactions in JDBC
+
+By default, each SQL statement is auto-committed, meaning it's committed to the DB immediately after execution. But for complex logic (like transferring money between accounts), you want manual control.
+
+🔸 Steps to Handle Transactions:
+Turn off auto-commit.
+Execute multiple SQL operations.
+Commit or rollback manually.
+
+🔸 Example: Money Transfer Between Two Accounts
+try {
+    conn.setAutoCommit(false);  // Start transaction
+
+    // Deduct money from account A
+    PreparedStatement withdraw = conn.prepareStatement("UPDATE accounts SET balance = balance - ? WHERE id = ?");
+    withdraw.setDouble(1, 500);
+    withdraw.setInt(2, 1);
+    withdraw.executeUpdate();
+
+    // Add money to account B
+    PreparedStatement deposit = conn.prepareStatement("UPDATE accounts SET balance = balance + ? WHERE id = ?");
+    deposit.setDouble(1, 500);
+    deposit.setInt(2, 2);
+    deposit.executeUpdate();
+
+    conn.commit(); // If both succeed, commit transaction
+    System.out.println("Transaction committed successfully.");
+
+} catch (SQLException e) {
+    try {
+        conn.rollback(); // If error occurs, rollback
+        System.out.println("Transaction rolled back.");
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+    e.printStackTrace();
+} finally {
+    conn.setAutoCommit(true);  // Restore auto-commit mode
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
