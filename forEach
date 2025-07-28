@@ -1,0 +1,85 @@
+🔹 What is forEach in Java?
+The forEach() method is used to iterate over elements in a collection (like a List, Set, or Map) and perform an action on each element.
+It is part of the Iterable interface, and it's introduced in Java 8.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Syntax
+collection.forEach(action);
+Where:
+collection is something like a List, Set, or Map
+action is typically a lambda expression or method reference
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🌱 Simple Example – Printing Elements of a List
+import java.util.*;
+
+public class ForEachExample1 {
+    public static void main(String[] args) {
+        List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
+
+        names.forEach(name -> System.out.println(name));
+    }
+}
+
+Output:
+Alice
+Bob
+Charlie
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🌿 Slightly Complex – Using Method Reference
+Instead of a lambda, we can use a method reference:
+names.forEach(System.out::println);
+This does exactly the same thing — it’s just shorter and cleaner.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🌾 Intermediate Example – Doing More in Lambda
+Let’s say you want to print each name in uppercase:
+names.forEach(name -> System.out.println(name.toUpperCase()));
+
+Or store the lengths:
+names.forEach(name -> {
+    int length = name.length();
+    System.out.println(name + " has " + length + " letters");
+});
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🌳 Complex Example – With a Map
+Maps are a little different because they have key-value pairs. Here's how to use forEach with a Map:
+
+import java.util.*;
+
+public class ForEachMapExample {
+    public static void main(String[] args) {
+        Map<String, Integer> scores = new HashMap<>();
+        scores.put("Alice", 90);
+        scores.put("Bob", 80);
+        scores.put("Charlie", 85);
+
+        scores.forEach((name, score) -> {
+            System.out.println(name + " scored " + score);
+        });
+    }
+}
+
+Output:
+Alice scored 90
+Bob scored 80
+Charlie scored 85
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🌲 Advanced Example – Filtering & Using Streams
+If you want to only print names starting with "A":
+
+names.stream()
+     .filter(name -> name.startsWith("A"))
+     .forEach(name -> System.out.println("Hello " + name));
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+⚠️ Notes:
+forEach() is not ideal if you want to modify the collection during iteration.
+Prefer forEach() for read-only actions, printing, logging, etc.
+If you need index access (like in arrays), a traditional for loop or IntStream is better.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🎓 Summary Table:
+| Use Case              | Code Example                                   |
+| --------------------- | ---------------------------------------------- |
+| Print list            | `list.forEach(System.out::println);`           |
+| Custom action         | `list.forEach(e -> System.out.println(e));`    |
+| With Map (key, value) | `map.forEach((k, v) -> System.out.println());` |
+| Filter + forEach      | `list.stream().filter(...).forEach(...);`      |
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
