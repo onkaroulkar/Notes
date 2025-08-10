@@ -1,0 +1,127 @@
+🔍 What Is volatile?
+When you declare a variable volatile, you are telling the Java Virtual Machine (JVM) that:
+
+The variable may be accessed by multiple threads.
+
+Every read of the variable should read it from main memory (not from the thread's local cache).
+
+Every write to the variable should be immediately visible to other threads.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧠 Why Is It Needed?
+Java threads can cache variables locally for performance. This means:
+
+One thread might not see the latest value of a variable changed by another thread.
+
+Without proper synchronization, threads may operate on stale or inconsistent data.
+
+The volatile keyword prevents this by enforcing happens-before relationships.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔄 Memory Visibility vs. Atomicity
+✅ Volatile ensures visibility, not atomicity.
+
+❌ It does not make operations like count++ atomic (that’s multiple operations under the hood).
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔧 How Does It Work?
+Under the hood, the JVM ensures:
+
+Write to a volatile variable → flushes value to main memory.
+
+Read from a volatile variable → always reads from main memory.
+
+This prevents threads from using cached versions of the variable.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧵 Example Without volatile
+class Shared {
+    boolean flag = false;
+
+    void writer() {
+        flag = true;
+    }
+
+    void reader() {
+        while (!flag) {
+            // might loop forever if flag is cached
+        }
+        System.out.println("Flag is true");
+    }
+}
+
+In this example, the reader() thread may never see the flag = true update unless flag is declared volatile.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Example With volatile
+
+class Shared {
+    volatile boolean flag = false;
+
+    void writer() {
+        flag = true;
+    }
+
+    void reader() {
+        while (!flag) {
+            // will exit once flag is true
+        }
+        System.out.println("Flag is true");
+    }
+}
+
+Now, changes to flag are guaranteed to be visible to the reader() thread.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧱 volatile vs. synchronized
+
+| Feature     | `volatile`                    | `synchronized`                       |
+| ----------- | ----------------------------- | ------------------------------------ |
+| Visibility  | ✅ Yes                         | ✅ Yes                                |
+| Atomicity   | ❌ No                          | ✅ Yes                                |
+| Performance | ⚡ Fast (lightweight)          | 🐢 Slower (blocking, context-switch) |
+| Use Case    | Single variable flags, status | Complex logic, multiple variables    |
+| Locking     | ❌ No locks                    | ✅ Locks (intrinsic monitor)          |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ When to Use volatile
+Use volatile when:
+
+You're working with a simple flag or state variable.
+
+The variable is written by one thread and read by others.
+
+No compound actions (like increment, update-if, etc.) are involved.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+❌ When Not to Use volatile
+Don’t use volatile when:
+
+You need atomic updates (count++, x = x + 1, etc.).
+
+You're working with multiple interdependent variables.
+
+You need mutual exclusion (use synchronized or ReentrantLock instead).
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🧪 Real-world Example: Double-Checked Locking
+
+class Singleton {
+    private static volatile Singleton instance;
+
+    private Singleton() {}
+
+    public static Singleton getInstance() {
+        if (instance == null) {
+            synchronized(Singleton.class) {
+                if (instance == null) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}
+
+Without volatile, the object might be visible in a partially constructed state.
+
+volatile ensures correct visibility after the constructor completes.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Summary
+volatile is about visibility and ordering, not atomicity.
+
+It’s suitable for simple flags or state indicators.
+
+For compound operations or multiple variables, use synchronized or locks.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
