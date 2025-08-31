@@ -17,3 +17,45 @@ public class InteviewProblem {
     }
 }
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Get the person name whoes age is greater than 25.
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class FilterOnPersonAge {
+    public static void main(String[] args) {
+        List<Person> list = new ArrayList<>();
+        list.add(new Person("onkar",23));
+        list.add(new Person("shubham",27));
+        list.add(new Person("Nirmal",26));
+
+        /*List<Person> result = list.stream().filter((Person person)-> person.getAge()>25).collect(Collectors.toList());
+        for(Person p : result){
+            System.out.println(p.getName());
+        }*/
+
+        // Using map which map the person name whose age is greater than 25.
+        List<String> result = list.stream().filter((Person person)-> person.getAge()>25).map(Person::getName).collect(Collectors.toList());
+        System.out.println(result);
+    }
+}
+
+class Person{
+    private String name;
+    private int age;
+
+    public Person(String name, int age){
+        this.name = name;
+        this.age = age;
+    }
+
+    public int getAge(){
+        return this.age;
+    }
+
+    public String getName(){
+        return this.name;
+    }
+}
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
