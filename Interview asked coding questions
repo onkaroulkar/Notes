@@ -1,0 +1,19 @@
+Question: Find the length of the string, ignoring the special characters.
+public class InteviewProblem {
+
+    public static int noOfCharactersInString(String str){
+        String words[] = str.split(" ");
+        StringBuilder sb = new StringBuilder();
+        for(String st : words){
+            sb.append(st.replaceAll("[^a-zA-Z]",""));
+        }
+
+        return sb.length();
+    }
+
+    public static void main(String[] args) {
+        String st = "onkar23@34 oul@3kar sht@3(*";
+        System.out.println(noOfCharactersInString(st));
+    }
+}
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
