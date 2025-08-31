@@ -381,6 +381,10 @@ Write code to find the intersection of two Lists.
 Implement a function to check if two lists are equal regardless of order.
 
 
+what is load factor?
+load factor  = No of elements/No of buckets
+
+
 
 
 
